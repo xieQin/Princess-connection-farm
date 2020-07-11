@@ -1,2 +1,8 @@
 
 accounts.txt
+.idea
+__pycache__
+test.py
+img/test.bmp
+venv
+AccountRecord.txt

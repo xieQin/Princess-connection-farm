@@ -7,7 +7,9 @@ from Automator import *
 # import matplotlib.pylab as plt
 import os
 import threading
+import log_handler
 
+log=log_handler.LOG()#初始化日志文件
 
 #测试程序
 
@@ -18,23 +20,25 @@ def runmain(address, account, password):
     a = Automator(address)
     a.start()
 
-    # #opencv识别可视化 无法在多线程中使用
+    # #opencv识别可视化无法在多线程中使用
     # plt.ion()
     # fig, ax = plt.subplots(1)
     # plt.show()
 
     print('>>>>>>>即将登陆的账号为：', account, '密码：', password, '<<<<<<<')
-    #a.login_auth(account, password)  # 注意！请把账号密码写在zhanghao2.txt内
-    #a.init_home()  # 初始化，确保进入首页
+    a.login_auth(account, password)  # 注意！请把账号密码写在zhanghao2.txt内
+    log.Account_Login(account)
+    a.init_home()  # 初始化，确保进入首页
+
 
     #a.tansuo()  # 探索
     #a.dixiachengDuanya()  # 地下城，请把队伍列表里1队设置为打boss队，2队设置为aoe队
     #a.shouqurenwu()  # 收取任务
     #a.shouqu()  # 收取所有礼物
-    print(a.baidu_ocr(0,0,200,200,2.0))
 
-    print('当前体力值为：',a.get_tili())
-    #a.change_acc()  # 退出当前账号，切换下一个
+    #print(a.baidu_ocr(394,502,442,666))
+    a.change_acc()  # 退出当前账号，切换下一个
+    log.Account_Logout(account)
 
 
 def connect():  # 连接adb与uiautomator
@@ -75,6 +79,8 @@ if __name__ == '__main__':
     lines, emulatornum = connect()
     # 读取账号
     account_list, account_dic, accountnum = read()
+
+
 
     # 多线程执行
     count = 0  # 完成账号数

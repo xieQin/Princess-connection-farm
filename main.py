@@ -7,45 +7,57 @@ from Automator import *
 # import matplotlib.pylab as plt
 import os
 import threading
-
+import log_handler
+import re
 
 def runmain(address, account, password):
     # 主功能体函数
     # 请在本函数中自定义需要的功能
 
     a = Automator(address)
+    log = log_handler.LOG()#初始化日志
     a.start()
     print('>>>>>>>即将登陆的账号为：', account, '密码：', password, '<<<<<<<', '\r\n')
     a.login_auth(account, password)  # 注意！请把账号密码写在zhanghao.txt内
+    log.Account_Login(account)
     a.init_home()  # 初始化，确保进入首页
     a.sw_init()  # 初始化刷图
-    a.hanghui()  # 行会捐赠
 
     a.gonghuizhijia()  # 家园一键领取
-    a.goumaimana(1)  # 购买mana 10次
+    #a.goumaimana(1)  # 购买mana 10次
     a.mianfeiniudan()  # 免费扭蛋
-    # a.mianfeishilian()  # 免费十连
+    a.mianfeishilian()  # 免费十连
     a.shouqu()  # 收取所有礼物
     a.dianzan()  # 公会点赞，sortflag=1表示按战力排序
-    a.shouqu()  # 收取所有礼物
-    a.dixiacheng()  # 地下城
+    a.dixiacheng(firsttime=False,skip=False)  # 地下城 如果是首次使用需要跳过剧情，可以修改firsttime=True；需要跳过战斗则skip=True
     a.goumaitili(3)  # 购买3次体力
     a.shouqurenwu()  # 收取任务
-    shuatu_auth(a, account)  # 刷图控制中心
-    a.hanghui()  # 行会捐赠
-    # a.shuajingyan(10) # 刷1-1经验（自带体力购买）,10为主图
+    ok = shuatu_auth(a, account)  # 刷图控制中心
+    if ok:  # 仅当刷图被激活(即注明了刷图图号)的账号执行行会捐赠，不刷图的认为是mana号不执行行会捐赠。
+        a.hanghui()  # 行会捐赠
+    else:  # 刷图没有被激活的可以去刷经验
+        # a.goumaitili(times=3)  # 购买times次体力
+        # a.shuajingyan(map=3)  # 刷1-1经验,map为主图
+        pass
     a.shouqurenwu()  # 二次收取任务
 
     a.change_acc()  # 退出当前账号，切换下一个
-
+    log.Account_Logout(account)
 
 def connect():  # 连接adb与uiautomator
     try:
-        os.system('cd adb & adb connect 127.0.0.1:5554')  # 雷电模拟器
+        # os.system 函数正常情况下返回是进程退出码，0为正常退出码，其余为异常
+        # 雷电模拟器
+        if os.system('cd adb & adb connect 127.0.0.1:5554') != 0:
+            print("连接模拟器失败")
+            exit(1)
         # os.system('cd adb & adb connect 127.0.0.1:7555') #mumu模拟器
-        os.system('python -m uiautomator2 init')
-    except:
-        print('连接失败')
+        if os.system('python -m uiautomator2 init') != 0:
+            print("初始化 uiautomator2 失败")
+            exit(1)
+    except Exception as e:
+        print('连接失败, 原因: {}'.format(e))
+        exit(1)
 
     result = os.popen('cd adb & adb devices')  # 返回adb devices列表
     res = result.read()
@@ -70,13 +82,16 @@ def read():  # 读取账号
     account_dic = {}
     fun_dic = {}
     fun_list = []
+    pattern = re.compile('\\s*(.*?)[\\s-]+([^\\s-]+)[\\s-]*(.*)')
     with open('zhanghao.txt', 'r') as f:  # 注意！请把账号密码写在zhanghao.txt内
-        for i, line in enumerate(f):
-            line = line.rstrip("\n")
-            account, password = line.split('\t')[0:2]
-            fun = line.split('\t')[2:]
-            account_dic[account] = password.strip()
-            fun_dic[account] = str(fun).strip()
+        for line in f:
+            result = pattern.findall(line)
+            if len(result) != 0:
+                account, password, fun = result[0]
+            else:
+                continue
+            account_dic[account] = password
+            fun_dic[account] = fun
             fun_list.append(fun_dic[account])
     account_list = list(account_dic.keys())
     accountnum = len(account_list)
@@ -90,10 +105,18 @@ def shuatu_auth(a, account):  # 刷图总控制
         '11': 'a.shuatu11()'
     }
     _, _, _, fun_list, fun_dic = read()
-    if fun_dic[account] == '[]':
-        eval(shuatu_dic['10'])
+    if len(fun_dic[account]) < 2:
+        print("账号{}不刷图".format(account))
+        return False
+    tu_hao = fun_dic[account][0:2]
+    if tu_hao in shuatu_dic:
+        print("账号{}将刷{}图".format(account, tu_hao))
+        eval(shuatu_dic[tu_hao])
+        return True
     else:
-        eval(shuatu_dic[fun_dic[account][2:4]])
+        print("账号{}的图号填写有误，请检查zhanghao.txt里的图号，图号应为两位数字，该账号将不刷图".format(account))
+        return False
+
 
 
 # 主程序
