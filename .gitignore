@@ -1,9 +1,24 @@
 
 accounts.txt
 .idea
+.vscode
 __pycache__
 test.py
 img/test.bmp
 venv
 AccountRecord.txt
 AccountRecord.log
+accounts.txt
+accounts_init.txt
+diy.py
+/screenshots/
+/users/
+/rec/
+log
+/tasks/
+/developutils/*.bmp
+
+# 测试用文件夹
+/test/
+/developutils/
+/users_bak/

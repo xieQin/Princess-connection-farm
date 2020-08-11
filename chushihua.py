@@ -1,13 +1,16 @@
 # import matplotlib.pylab as plt
 import os
-import threading
-
-from Automator import *
 import re
+import threading
+import time
+
+from core.Automator import *
+from core.cv import UIMatcher
+from core.utils import random_name, CreatIDnum
 
 
 def runmain(address, account, password):
-    a = Automator(address, account)
+    a = Automator(address)
     a.start()
 
     print('>>>>>>>即将登陆的账号为：', account, '密码：', password, '<<<<<<<')
@@ -39,8 +42,8 @@ def runmain(address, account, password):
     count = 0  # 记录跳过战斗的数量
     times = 0  # 记录主页出现的次数
     while True:
-        screen_shot_ = a.d.screenshot(format="opencv")
-        num_of_white, x, y = UIMatcher.find_gaoliang(screen_shot_)
+        screen = a.d.screenshot(format="opencv")
+        num_of_white, x, y = UIMatcher.find_gaoliang(screen)
         if num_of_white < 70000:
             try:
                 a.d.click(x * a.dWidth, y * a.dHeight + 20)
@@ -48,25 +51,26 @@ def runmain(address, account, password):
                 pass
             time.sleep(1)
             continue
-        template_path = ['img/tongyi.jpg', 'img/tiaoguo.jpg', 'img/dengji.jpg', 'img/ok.bmp', 'img/niudan_jiasu.jpg']
-        active_path = UIMatcher.imgs_where(screen_shot_, template_path)
-        if len(active_path) > 0:
-            for (x, y) in active_path.values():
-                a.d.click(x, y)
-                time.sleep(0.5)
-                # 看下面的break，我的目的是从active_path中随便取一个value点，但是我没有更优雅的写法，求改正
+
+        template_paths = {
+            'img/tongyi.jpg': (490, 459, 686, 496),
+            'img/tiaoguo.jpg': None,
+            'img/dengji.jpg': (382, 352, 578, 391),
+            'img/ok.bmp': None,
+            'img/niudan_jiasu.jpg': (700, 0, 960, 100)
+        }
+        for template in template_paths:
+            if a.click_img(screen, template, at=template_paths[template]):
                 break
-            continue
-        template_path = ['img/caidan.jpg', 'img/caidan_yuan.jpg']
-        active_path = UIMatcher.imgs_where(screen_shot_, template_path)
-        if count < 2 and ('img/caidan.jpg' in active_path):  # 有两场战斗是可以跳过的
+
+        if count < 2 and (UIMatcher.img_where(screen, 'img/caidan.jpg', at=(861, 15, 940, 37))):  # 有两场战斗是可以跳过的
             count += 1
             a.d.click(900, 25)
             time.sleep(0.8)
             a.d.click(591, 370)
             time.sleep(0.5)
             continue
-        if 'img/caidan_yuan.jpg' in active_path:
+        if UIMatcher.img_where(screen, 'img/caidan_yuan.jpg', at=(898, 23, 939, 62)):
             a.d.click(919, 45)
             time.sleep(0.8)
             a.d.click(806, 46)
@@ -74,31 +78,37 @@ def runmain(address, account, password):
             a.d.click(589, 370)
             time.sleep(0.5)
             continue
-        if UIMatcher.img_where(screen_shot_, 'img/kuaijin.jpg'):
+        if UIMatcher.img_where(screen, 'img/jingsaikaishi.bmp', at=(755, 471, 922, 512)):
+            a.d.click(786, 308)  # 选角色
+            time.sleep(0.2)
+            a.d.click(842, 491)  # 开始
+            time.sleep(0.5)
+            continue
+        if UIMatcher.img_where(screen, 'img/kuaijin.jpg', at=(891, 478, 936, 517)):
             a.d.click(911, 493)
             time.sleep(3)
             continue
-        if UIMatcher.img_where(screen_shot_, 'img/liwu.bmp'):
+        if UIMatcher.img_where(screen, 'img/liwu.bmp', at=(891, 413, 930, 452)):
             if times == 2:
                 break
             times += 1
             print('在主页的第', times, '次')
         # default
         a.d.click(1, 100)
-        time.sleep(0.8)
+        time.sleep(0.5)
     print('新手教程已完成')
     # ===========新手教程完成============
     # ===========开始前期准备============
 
-    a.lockimg('img/liwu.jpg', elseclick=[(1, 100)], elsedelay=0.5, alldelay=2)
+    a.lock_img('img/liwu.jpg', elseclick=[(1, 100)], elsedelay=0.5, alldelay=2)
     a.shouqu()  # 拿一点钻石用于买扫荡券，理论上至少能拿到300钻
     a.goumaimana(1)  # 买扫荡券
     a.goumaitili(3)
     a.goumaijingyan()
 
     a.setting()  # 设置无动画、低帧率
-    a.lockimg('img/zhuxianguanqia.jpg', elseclick=[(480, 513)], elsedelay=0.5, alldelay=1)
-    a.lockimg('img/zhuxianguanqia.jpg', ifclick=[(562, 235)], ifdelay=3, alldelay=0)
+    a.lock_img('img/zhuxianguanqia.jpg', elseclick=[(480, 513)], elsedelay=0.5, alldelay=1)
+    a.lock_img('img/zhuxianguanqia.jpg', ifclick=[(562, 235)], ifdelay=3, alldelay=0)
     # ===========前期准备结束============
     # =============开始刷图==============
     # 如果执行了新手教程，应该已经开成两倍速了，否则直接
@@ -133,9 +143,10 @@ def runmain(address, account, password):
     a.shoushuazuobiao(138, 188, 1)  # 3-1
     # 结束刷图
     # 开始探索
-    a.lockimg('img/liwu.bmp', elseclick=[(131, 533)], elsedelay=1)  # 回首页
+    a.lock_img('img/liwu.bmp', elseclick=[(131, 533)], elsedelay=1)  # 回首页
     # a.tansuo(mode=2) 还有问题，暂时关闭
     a.shouqurenwu()
+    # a.rename(account) # 重命名昵称为账号ID
     a.change_acc()  # 退出当前账号，切换下一个
     t = time.time()
     print('>>>>>>>账号：', account, '已刷完, 用时', t - t0, '秒<<<<<<<')
