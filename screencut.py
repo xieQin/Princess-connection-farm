@@ -5,6 +5,7 @@ import cv2
 import matplotlib
 from matplotlib import pyplot as plt
 
+from automator_mixins._base import Multithreading
 from core.Automator import Automator
 
 
@@ -130,8 +131,8 @@ class AutomatorDebuger(Automator):
 
     @staticmethod
     def Init():
-        from initialize import connect
-        connect()
+        from core.initializer import _connect
+        _connect()
 
     def Connect(self, address=None):
         lst = adbutils.adb.device_list()
@@ -140,10 +141,12 @@ class AutomatorDebuger(Automator):
         else:
             if address is None:
                 address = lst[0].serial
+            Multithreading({}).state_sent_resume()
             self.init_device(address)
 
     def Account(self, account):
-        self.init_account(account)
+        self.init_account(account, "users")
+        self.start_shuatu()
 
     def Shot(self, file="test.bmp", show=True):
         self.getscreen(file)

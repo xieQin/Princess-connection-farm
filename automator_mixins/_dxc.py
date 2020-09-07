@@ -1,6 +1,6 @@
 import time
 
-from core.constant import DXC_NUM
+from core.constant import DXC_NUM, FIGHT_BTN, DXC_ELEMENT
 from core.cv import UIMatcher
 from core.log_handler import pcr_log
 from ._dxc_base import DXCBaseMixin
@@ -16,46 +16,55 @@ class DXCMixin(DXCBaseMixin, ToolsMixin):
     def __init__(self):
         super().__init__()
 
-    def dixiacheng_ocr(self, skip):
+    def dixiacheng_ocr(self, skip, assist_num=1, stuck_today=False, stuck_notzhandoukaishi=False):
         """
         地下城函数已于2020/7/11日重写
         By:Cyice
         有任何问题 bug请反馈
-        :param skip:
+        :param assist_num: 选支援第一行的第n个，等级限制会自动选择第n+1个
+        :param stuck_notzhandoukaishi: 卡住等级不足
+        :param stuck_today: 今天卡住地下城
+        :param skip: 跳过战斗
         :return:
         """
         # global dixiacheng_floor_times
         # 全局变量贯通两个场景的地下层次数识别
+
+        # 数据纠正
+        if assist_num > 8 or assist_num < 1:
+            assist_num = 1
+
         while True:
             # 进入流程先锁上地下城执行函数
             self.dxc_switch = 1
-            self.click(480, 505, pre_delay=0.5, post_delay=1)
+            self.click(480, 505, pre_delay=self.change_time, post_delay=self.change_time)
             if self.is_exists('img/dixiacheng.jpg', at=(837, 92, 915, 140)):
-                self.lock_no_img('img/dixiacheng.jpg', elseclick=(900, 138), elsedelay=1, retry=10)
-                self.click(1, 1)
+                self.lock_no_img('img/dixiacheng.jpg', elseclick=(900, 138), elsedelay=self.change_time, retry=10)
+                self.click(1, 1, pre_delay=3.5)
+                if self.is_exists('img/yunhai.bmp'):
+                    break
                 # 防止一进去就是塔币教程
-                # self.dxc_kkr()
+                self.lock_img('img/dxc/chetui.bmp', side_check=self.dxc_kkr, retry=3, at=(779, 421, 833, 440))
                 break
+                # self.dxc_kkr()
         tmp_cout = 0
         while tmp_cout <= 2:
             try:
-                time.sleep(8)
-                if self.is_exists('img/chetui.jpg'):
-                    dixiacheng_floor = self.baidu_ocr(200, 410, 263, 458)
+                if self.is_exists('img/dxc/chetui.bmp', at=(779, 421, 833, 440)):
+                    dixiacheng_floor = self.ocr_center(216, 423, 259, 442, size=1.5)
                     # print(dixiacheng_floor)
-                    dixiacheng_floor = int(dixiacheng_floor['words_result'][0]['words'].split('/')[0])
-                    time.sleep(2)
-                    dixiacheng_floor_times = self.baidu_ocr(668, 421, 697, 445)
+                    dixiacheng_floor = int(dixiacheng_floor.split('/')[0])
+                    dixiacheng_floor_times = self.ocr_center(668, 421, 697, 445, size=1.5)
                     # print(dixiacheng_floor_times)
-                    dixiacheng_floor_times = int(dixiacheng_floor_times['words_result'][0]['words'].split('/')[0])
+                    dixiacheng_floor_times = int(dixiacheng_floor_times.split('/')[0])
                     tmp_cout = tmp_cout + 1
                     dixiacheng_times = dixiacheng_floor_times
                     # print(dixiacheng_floor, ' ', dixiacheng_floor_times)
                     if dixiacheng_floor > 1 and dixiacheng_floor_times <= 1:
                         pcr_log(self.account).write_log(level='info', message='%s 已经打过地下城，执行撤退' % self.account)
-                        if self.is_exists('img/chetui.jpg'):
-                            self.click(808, 435, pre_delay=1)
-                            self.click(588, 371, pre_delay=2)
+                        if self.is_exists('img/dxc/chetui.bmp'):
+                            self.click(808, 435, pre_delay=self.change_time)
+                            self.click(588, 371, pre_delay=1 + self.change_time)
                             break
                     elif dixiacheng_floor >= 1 and dixiacheng_floor_times <= 1:
                         pcr_log(self.account).write_log(level='info', message='%s 不知是否打过地下城，开始执行地下城流程' % self.account)
@@ -75,20 +84,23 @@ class DXCMixin(DXCBaseMixin, ToolsMixin):
                 pcr_log(self.account).write_log(level='warning', message='1-检测出异常{},重试'.format(result))
                 tmp_cout = tmp_cout + 1
         tmp_cout = 0
-        while tmp_cout <= 2 and self.dxc_switch == 1:
+        while tmp_cout <= 3 and self.dxc_switch == 1:
             try:
-                self.click(1, 1, post_delay=2)
+                # 防可可萝
+                self.lock_img('img/yunhai.bmp', side_check=self.juqing_kkr, retry=3)
                 if self.is_exists('img/yunhai.bmp'):
-                    time.sleep(2)
-                    dixiacheng_times = self.baidu_ocr(868, 419, 928, 459)
-                    dixiacheng_times = int(dixiacheng_times['words_result'][0]['words'].split('/')[0])
+                    dixiacheng_times = self.ocr_center(879, 430, 917, 448, size=2.0)
+                    # {'log_id': ***, 'words_result_num': 1, 'words_result': [{'words': '0/1'}]}
+                    # print(dixiacheng_times)
+                    dixiacheng_times = int(dixiacheng_times.split('/')[0])
                     if dixiacheng_times <= 1:
                         break
                     tmp_cout = tmp_cout + 1
             except Exception as result:
                 pcr_log(self.account).write_log(level='warning', message='2-检测出异常{},重试'.format(result))
+                # 休息3s，等解锁动画
+                time.sleep(3)
                 tmp_cout = tmp_cout + 1
-        # 下面这段因为调试而注释了，实际使用时要加上
         while self.dxc_switch == 1:
             # print(dixiacheng_times, ' ', dixiacheng_floor_times)
             if dixiacheng_times == -1 and dixiacheng_floor_times == -1:
@@ -100,17 +112,19 @@ class DXCMixin(DXCBaseMixin, ToolsMixin):
                 if self.is_exists('img/yunhai.bmp') and dixiacheng_times == 1:
                     self.dxc_switch = 0
                     # 识别到后满足条件，开锁
-                    self.click(233, 311, post_delay=1)
+                    self.click(130, 259, post_delay=self.change_time)
+                    # 保险
+                    self.lock_no_img('img/yunhai.bmp', elseclick=[(130, 259)], threshold=0.975)
                 elif self.is_exists('img/yunhai.bmp') and dixiacheng_times == 0:
                     self.dxc_switch = 1
                     pcr_log(self.account).write_log(level='info', message='%s今天已经打过地下城' % self.account)
                     return False
                 if self.dxc_switch == 0:
                     # 不加可能会导致卡顿找不到图片
-                    self.lock_img('img/ok.bmp')
-                    self.lock_no_img('img/ok.bmp', elseclick=[(592, 369)])  # 锁定OK
+                    self.lock_img('img/ui/ok_btn_1.bmp', elseclick=[(130, 259)])
+                    self.lock_no_img('img/ui/ok_btn_1.bmp', elseclick=[(592, 369)])  # 锁定OK
                 else:
-                    pcr_log(self.account).write_log(level='info', message='>>>今天无次数')
+                    pcr_log(self.account).write_log(level='warning', message='识别不到次数！')
                     # LOG().Account_undergroundcity(self.account)
                     self.dxc_switch = 1
                     return False
@@ -122,7 +136,7 @@ class DXCMixin(DXCBaseMixin, ToolsMixin):
                 self.dixiacheng(skip)
                 return False
             try:
-                if self.is_exists('img/chetui.jpg') and dixiacheng_times <= 1:
+                if self.is_exists('img/dxc/chetui.bmp', at=(779, 421, 833, 440)) and dixiacheng_times <= 1:
                     # print('>>>', dixiacheng_times)
                     break
             except:
@@ -132,53 +146,65 @@ class DXCMixin(DXCBaseMixin, ToolsMixin):
                 return False
 
         while self.dxc_switch == 0:
+            if stuck_today:
+                pcr_log(self.account).write_log(level='info', message="%s今天选择了卡住地下城哦~" % self.account)
+                break
+
             # 防止一进去就是塔币教程
-            # self.dxc_kkr()
+            self.lock_img('img/dxc/chetui.bmp', side_check=self.dxc_kkr, at=(779, 421, 833, 440))
+            # 又一防御措施，防止没进去地下城
+            self.lock_no_img('img/yunhai.bmp', elseclick=[(130, 259), (592, 369)], threshold=0.97)
             while True:
                 time.sleep(0.5)
-                if self.is_exists('img/chetui.jpg'):
-                    self.lock_img('img/tiaozhan.bmp', ifclick=[(833, 456)], elseclick=[(667, 360), (667, 330)])
+                self.lock_img('img/dxc/chetui.bmp', side_check=self.juqing_kkr, at=(779, 421, 833, 440))
+                if self.is_exists('img/dxc/chetui.bmp', at=(779, 421, 833, 440)):
+                    self.lock_img('img/tiaozhan.bmp', ifclick=[(833, 456)], elseclick=[(667, 360), (667, 330)],
+                                  side_check=self.juqing_kkr)
                     # 锁定挑战和第一层
                     break
             while True:
-                time.sleep(0.5)
-                if self.is_exists('img/zhiyuan.jpg', at=(448, 78, 512, 102)):
-                    time.sleep(1)
-                    # self.click(100, 173)  # 第一个人
-                    screen_shot = self.getscreen()
-                    self.click_img(screen_shot, 'img/zhiyuan.jpg', pre_delay=2)
-                    break
+                time.sleep(self.change_time)
+                self.click_btn(DXC_ELEMENT["zhiyuan_white"], until_appear=DXC_ELEMENT["zhiyuan_blue"], retry=3
+                               , wait_self_before=True)
+                break
 
             if self.is_exists('img/dengjixianzhi.jpg', at=(45, 144, 163, 252)):
-                self.click(213, 208, post_delay=1)  # 如果等级不足，就支援的第二个人
+                # 如果等级不足，就支援的第二个人
+                self.click_btn(DXC_ELEMENT["zhiyuan_dianren"][assist_num + 1],
+                               until_appear=DXC_ELEMENT["zhiyuan_gouxuan"]
+                               , retry=5, elsedelay=0.1)
                 # self.click(100, 173, post_delay=1)  # 支援的第一个人
             else:
-                time.sleep(0.8)
-                self.click(100, 173, post_delay=1)  # 支援的第一个人
-                self.click(213, 208)  # 以防万一
+                time.sleep(self.change_time)
+                self.click_btn(DXC_ELEMENT["zhiyuan_dianren"][assist_num], until_appear=DXC_ELEMENT["zhiyuan_gouxuan"]
+                               , retry=5, elsedelay=0.1)
+            time.sleep(self.change_time)
             if self.is_exists('img/notzhandoukaishi.bmp', threshold=0.97):
                 # 逻辑顺序改变
                 # 当无法选支援一二位时，将会退出地下城
                 pcr_log(self.account).write_log(level='info', message="%s无法出击!" % self.account)
                 break
             else:
-                self.click(98, 88, post_delay=1)  # 全部
-                self.click(100, 173, post_delay=1)  # 第一个人
-                self.click(833, 470)  # 战斗开始
+                # 全部
+                self.click_btn(DXC_ELEMENT["quanbu_white"], until_appear=DXC_ELEMENT["quanbu_blue"], elsedelay=0.1)
+                self.click_btn(DXC_ELEMENT["zhiyuan_dianren"][1], until_appear=DXC_ELEMENT["zhiyuan_gouxuan"],
+                               elsedelay=0.1, retry=3)  # 第一个人
+                self.click_btn(DXC_ELEMENT["zhandoukaishi"], until_disappear=DXC_ELEMENT["zhandoukaishi"]
+                               , elsedelay=0.1)  # 战斗开始
             while True:
-                if self.is_exists('img/notzhandoukaishi.bmp', threshold=0.97):
-                    # 逻辑顺序改变
-                    # 当无法选支援一二位时，将会退出地下城
-                    pcr_log(self.account).write_log(level='info', message="%s无法出击!" % self.account)
+                if self.is_exists(FIGHT_BTN["caidan"]):
                     break
-                self.lock_img('img/ok.bmp', ifclick=[(588, 480)], elseclick=[(833, 470)], ifbefore=2, ifdelay=1)
+                self.lock_img('img/ui/ok_btn_1.bmp', elseclick=[(833, 470)], ifbefore=self.change_time,
+                              ifdelay=self.change_time, retry=3)
+                self.lock_no_img('img/ui/ok_btn_1.bmp', elseclick=[(588, 480)])
                 break
 
             if skip:  # 直接放弃战斗
-                self.lock_img('img/caidan.jpg', ifclick=[(902, 33)], ifbefore=2, ifdelay=1)
-                self.lock_img('img/fangqi.jpg', ifclick=[(625, 376)], ifbefore=2, ifdelay=3)
-                self.lock_img('img/fangqi_2.bmp', ifclick=[(625, 376)], ifbefore=2, ifdelay=1)
-                time.sleep(3)
+                self.click_btn(FIGHT_BTN["caidan"], wait_self_before=True, until_appear=FIGHT_BTN["fangqi_1"],
+                               elsedelay=0.1)
+                self.click_btn(FIGHT_BTN["fangqi_1"], until_appear=FIGHT_BTN["fangqi_2"])
+                self.click_btn(FIGHT_BTN["fangqi_2"], until_disappear=FIGHT_BTN["fangqi_2"])
+                time.sleep(3 + self.change_time)
                 # 这里防一波打得太快导致来不及放弃
                 if self.is_exists('img/shanghaibaogao.jpg') and self.is_exists('img/xiayibu.jpg'):
                     self.lock_no_img('img/xiayibu.jpg', elseclick=[(870, 503)])
@@ -187,48 +213,59 @@ class DXCMixin(DXCBaseMixin, ToolsMixin):
                     self.lock_no_img('img/qianwangdixiacheng.jpg', elseclick=[(870, 503)])
                     break
             else:
-                self.lock_img('img/auto_1.jpg', elseclick=[(914, 425)], retry=6)
-                self.lock_img('img/kuaijin_3.bmp', elseclick=[(913, 494)], retry=6)
+                # 防止奇奇怪怪的飞到主菜单
+                if self.lock_img('img/caidan.jpg', elseclick=[(1, 1)], retry=3):
+                    self.lock_img('img/auto_1.jpg', elseclick=[(914, 425)], elsedelay=0.2, retry=3)
+                    self.lock_img('img/kuaijin_3.bmp', elseclick=[(913, 494)], elsedelay=0.2, retry=3)
             while skip is False:  # 结束战斗返回
-                time.sleep(1)
-                if self.is_exists('img/shanghaibaogao.jpg') and self.is_exists('img/xiayibu.jpg'):
+                time.sleep(self.change_time)
+                if self.is_exists('img/shanghaibaogao.jpg', at=(663, 6, 958, 120)) and \
+                        self.is_exists('img/xiayibu.jpg', at=(457, 421, 955, 535)):
                     self.lock_no_img('img/xiayibu.jpg', elseclick=[(870, 503)])
                     break
-                elif self.is_exists('img/shanghaibaogao.jpg') and self.is_exists('img/qianwangdixiacheng.jpg'):
+                elif self.is_exists('img/shanghaibaogao.jpg', at=(663, 6, 958, 120)) and \
+                        self.is_exists('img/qianwangdixiacheng.jpg', at=(457, 421, 955, 535)):
                     self.lock_no_img('img/qianwangdixiacheng.jpg', elseclick=[(870, 503)])
                     break
                 else:
-                    if self.is_exists('img/chetui.jpg'):
+                    if self.is_exists('img/dxc/chetui.bmp'):
                         break
 
-            self.click(1, 1, pre_delay=1)  # 取消显示结算动画
+            self.click(1, 1)  # 跳过结算
             while True:  # 撤退地下城
-                time.sleep(0.5)
-                self.click(1, 1, pre_delay=1)  # 取消显示结算动画
-                if self.is_exists('img/chetui.jpg'):
-                    self.lock_img('img/ok.bmp', ifclick=[(588, 371)], elseclick=[(808, 435)], retry=20)
+                time.sleep(self.change_time)
+                self.click(1, 1, pre_delay=self.change_time)  # 取消显示结算动画
+                if self.is_exists('img/dxc/chetui.bmp', at=(779, 421, 833, 440)):
+                    self.lock_img('img/ui/ok_btn_1.bmp', ifclick=[(588, 371)], elseclick=[(808, 435)], retry=20)
                     break
             # 执行完后再检测一轮后跳出大循环
-            self.lock_no_img('img/chetui.jpg', elseclick=[(808, 435), (588, 371)], retry=20)
+            self.lock_no_img('img/dxc/chetui.bmp', elseclick=[(808, 435), (588, 371)], retry=20,
+                             at=(779, 421, 833, 440))
             self.lock_img('img/yunhai.bmp')
             break
         while True:  # 首页锁定
             if self.is_exists('img/liwu.bmp', at=(891, 413, 930, 452)):
                 break
-            self.click(131, 533, post_delay=1)  # 保证回到首页
+            self.click(131, 533, post_delay=self.change_time)  # 保证回到首页
             # 防卡死
             screen_shot_ = self.getscreen()
             # click_img 暂且无法传入list
-            self.guochang(screen_shot_, ['img/xiayibu.jpg', 'img/qianwangdixiacheng.jpg'])
+            self.click_img(screen=screen_shot_, img='img/xiayibu.jpg')
+            self.click_img(screen=screen_shot_, img='img/qianwangdixiacheng.jpg')
+
+            if stuck_today or stuck_notzhandoukaishi:
+                continue
+
             screen_shot = self.getscreen()
-            self.click_img(screen_shot, 'img/chetui.jpg')
-            time.sleep(2)
+            self.click_img(screen_shot, 'img/dxc/chetui.bmp', at=(779, 421, 833, 440))
+            time.sleep(2 + self.change_time)
             screen_shot = self.getscreen()
-            self.click_img(screen_shot, 'img/ok.bmp')
+            self.click_img(screen_shot, 'img/ui/ok_btn_1.bmp')
 
     def dixiacheng(self, skip):
         """
         地下城函数于2020/7/14日修改
+        地下城函数再于2020/8/13日修改
         By:Dr-Bluemond
         有任何问题 bug请反馈
         :param skip:
@@ -238,6 +275,11 @@ class DXCMixin(DXCBaseMixin, ToolsMixin):
         self.lock_img('img/dixiacheng.jpg', elseclick=[(480, 505)], elsedelay=0.5, at=(837, 92, 915, 140))  # 进入地下城
         self.lock_no_img('img/dixiacheng.jpg', elseclick=[(900, 138)], elsedelay=0.5, alldelay=5,
                          at=(837, 92, 915, 140))
+        # 防止一进去就是塔币教程
+        self.lock_img('img/chetui.jpg', elseclick=[(1, 1)], side_check=self.dxc_kkr, retry=3, at=(738, 420, 872, 442))
+        # 防止教程
+        self.lock_img('img/chetui.jpg', elseclick=[(1, 1)], side_check=self.juqing_kkr, at=(738, 420, 872, 442),
+                      retry=3)
 
         # 撤退 如果 已经进入
         while True:
@@ -251,18 +293,24 @@ class DXCMixin(DXCBaseMixin, ToolsMixin):
             self.click(1, 100)
             time.sleep(0.3)
 
-        ok = self.lock_img('img/ok.bmp', elseclick=[(298, 213)], elsedelay=0.5, ifclick=[(596, 371)], ifbefore=1,
-                           ifdelay=0, retry=3, at=(495, 353, 687, 388))
+        ok = self.lock_img('img/ok.bmp', elseclick=[(131, 159)], elsedelay=2, ifclick=[(596, 371)], ifbefore=0.5,
+                           ifdelay=0, retry=3)
         if not ok:
             pcr_log(self.account).write_log(level='error', message="%s未能成功进入云海的山脉，跳过刷地下城" % self.account)
             self.lock_img('img/liwu.bmp', elseclick=[(131, 533)], at=(891, 413, 930, 452))
             return
+        # 防止教程
+        self.lock_img('img/chetui.jpg', side_check=self.juqing_kkr, at=(738, 420, 872, 442), retry=3)
 
         while True:
+            # 防止塔币教程
+            self.lock_img('img/chetui.jpg', elseclick=[(1, 1)], side_check=self.dxc_kkr, at=(738, 420, 872, 442),
+                          retry=10)
             # 锁定挑战和第一层
-            self.lock_img('img/tiaozhan.bmp', elseclick=[(667, 360)], ifclick=[(833, 456)], at=(759, 428, 921, 483))
-            time.sleep(2)
-            self.click(480, 88)
+            time.sleep(1.5)
+            self.lock_img('img/tiaozhan.bmp', elseclick=[(667, 360)], elsedelay=1, ifclick=[(833, 456)],
+                          at=(759, 428, 921, 483))
+            self.lock_img('img/dxc/quanbu.bmp', ifclick=[(480, 88)], ifbefore=1, at=(78, 80, 114, 102))
             time.sleep(0.5)
             poses = [(106, 172), (216, 172), (323, 172), (425, 172)]
             for pos in poses:
@@ -291,8 +339,8 @@ class DXCMixin(DXCBaseMixin, ToolsMixin):
 
             time.sleep(4)  # 这里填写你预估的进入战斗加载所花费的时间
             if skip:  # 直接放弃战斗
-                ok = self.lock_img('img/fangqi.jpg', elseclick=[(902, 33)], elsedelay=0.5, ifclick=[(625, 376)],
-                                   ifbefore=0, ifdelay=0, retry=7, at=(567, 351, 686, 392))
+                ok = self.lock_img('img/fangqi.jpg', elseclick=[(902, 33)], elsedelay=1, ifclick=[(625, 376)],
+                                   ifbefore=0.5, ifdelay=0, retry=10, at=(567, 351, 686, 392))
                 if ok:
                     ok2 = self.lock_img('img/fangqi_2.bmp', ifclick=[(625, 376)], ifbefore=0.5, ifdelay=0, retry=3,
                                         at=(486, 344, 693, 396))

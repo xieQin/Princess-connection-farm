@@ -14,21 +14,31 @@
       <el-dialog title="添加账户" :visible.sync="dialogFormVisible"
                  @close="()=>{dialogFormVisible = false;form = {username: '',password: ''}}">
         <el-form :model="form">
-          <el-form-item label="username">
+          <el-form-item label="用户名">
             <el-input v-model="form.username" autocomplete="off"></el-input>
           </el-form-item>
-          <el-form-item label="password">
+          <el-form-item label="密码">
             <el-input v-model="form.password" autocomplete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="任务">
+            <el-select v-model="form.taskname" filterable placeholder="请选择">
+              <el-option
+                v-for="item in taskname_options"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
           </el-form-item>
         </el-form>
         <div slot="footer" class="dialog-footer">
-          <el-button @click="()=>{dialogFormVisible = false;form = {username: '',password: ''}}">取 消</el-button>
-          <el-button type="primary" @click="handleCreate(form.username, form.password)">确 定</el-button>
+          <el-button @click="()=>{dialogFormVisible = false;form = {username: '',password: '', taskname:''}}">取 消</el-button>
+          <el-button type="primary" @click="handleCreate(form.username, form.password, form.taskname)">确 定</el-button>
         </div>
       </el-dialog>
 
       <el-table
-        :data="tableData.filter(data => !search || data.username.toLowerCase().includes(search.toLowerCase()) || data.tags.toLowerCase().includes(search.toLowerCase()))"
+        :data="tableData.filter(data => !search || data.username.toLowerCase().includes(search.toLowerCase()) || data.taskname.toLowerCase().includes(search.toLowerCase()) || data.tags.toLowerCase().includes(search.toLowerCase()) )"
         style="width: 100%"
         stripe
         @selection-change="handleSelectionChange">
@@ -50,7 +60,22 @@
           </template>
         </el-table-column>
         <el-table-column
-          label="标签(功能开发中)"
+          label="任务"
+          prop="taskname">
+          <template slot-scope="scope">
+            <el-select v-if="scope.row.edit" v-model="scope.row.taskname" filterable placeholder="请选择">
+              <el-option
+                v-for="item in taskname_options"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+            <span v-if="!scope.row.edit">{{ scope.row.taskname }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          label="标签 (开发中)"
           prop="tags">
         </el-table-column>
         <el-table-column
@@ -59,7 +84,7 @@
             <el-input
               v-model="search"
               size="mini"
-              placeholder="用户名/标签"/>
+              placeholder="用户名/任务/标签"/>
           </template>
 
           <template slot-scope="scope">
@@ -100,7 +125,7 @@
 </template>
 
 <script>
-import {createAccount, deleteAccount, listAccount, updateAccount} from '@/request/api'
+import {createAccount, deleteAccount, listAccount, listTask, updateAccount} from '@/request/api'
 
 export default {
   name: 'AccountConfig',
@@ -111,16 +136,20 @@ export default {
       dialogFormVisible: false,
       form: {
         username: '',
-        password: ''
-      }
+        password: '',
+        taskname: ''
+      },
+      taskname_options: [],
+      value: ''
     }
   },
   mounted () {
     this.refreshTableData()
+    this.refreshTasknameOptions()
   },
   methods: {
-    handleCreate (username, password) {
-      createAccount(username, password).then(res => {
+    handleCreate (username, password, taskname) {
+      createAccount(username, password, taskname).then(res => {
         this.$notify({
           title: '创建成功',
           message: username + '/' + password,
@@ -154,10 +183,10 @@ export default {
     handleSubmitEdit (index, row) {
       row.edit = !row.edit
 
-      updateAccount(row.username, row.password).then(res => {
+      updateAccount(row.username, row.password, row.taskname).then(res => {
         this.$notify({
           title: '修改成功',
-          message: row.username + '/' + row.password,
+          message: row.username + '/' + row.password + '/' + row.taskname,
           type: 'success'
         })
         this.refreshTableData()
@@ -206,39 +235,74 @@ export default {
     handleSelectionChange (val) {
       this.multipleSelection = val
     },
+    refreshTasknameOptions () {
+      var _this = this
+      listTask().then(res => {
+        var options = []
+        for (var i = 0; i < res.data.length; i++) {
+          options.push({
+            value: res.data[i].taskname,
+            label: res.data[i].taskname
+          })
+        }
+        _this.taskname_options = options
+      }).catch(err => {
+        _this.taskname_options = [{
+          value: 'mana号任务',
+          label: 'mana号任务'
+        }, {
+          value: '装备号任务',
+          label: '装备号任务'
+        }, {
+          value: '大号任务',
+          label: '大号任务'
+        }]
+        this.$notify({
+          title: '后端未启动, 加载演示数据',
+          message: err,
+          type: 'success'
+        })
+      }
+
+      )
+    },
     refreshTableData () {
       var _this = this
       listAccount().then(res => {
         console.log(res)
         for (var i = 0; i < res.data.length; i++) {
           res.data[i]['edit'] = false
-          res.data[i]['tags'] = '-'
         }
         _this.tableData = res.data
       }).catch(err => {
         _this.tableData = [{
           username: '张三',
           password: '********',
+          taskname: 'mana号任务',
           tags: '大号,1会',
           edit: false
         }, {
           username: '罗某',
           password: '********',
+          taskname: 'mana号任务',
           tags: '大号,1会',
           edit: false
         }, {
           username: '某翔',
           password: '********',
+          taskname: '装备号任务',
           tags: '农场,1会',
           edit: false
         }, {
           username: '韩立',
           password: '********',
+          taskname: '装备号任务',
           tags: '农场,2会',
           edit: false
         }, {
           username: '咕噜灵波',
           password: '********',
+          taskname: '大号任务',
           tags: '农场,2会',
           edit: false
         }]

@@ -66,7 +66,7 @@ MAIN_BTN = {
     # 主线关卡
     "zhuxian": p(500, 90, img="img/home/zhuxian.bmp", at=(526, 117, 587, 186)),
     # 公会之家
-    "gonghuizhijia": p(617, 512),
+    "gonghuizhijia": p(617, 530),
     # 扭蛋
     "niudan": p(753, 514),
     # 主菜单
@@ -105,7 +105,41 @@ MAIN_BTN = {
     "loading_left": p(at=(36, 87, 224, 386)),
 
     "exp_bar": p(at=(78, 23, 178, 31), fc=(106, 205, 176), bc=(94, 125, 146)),
+    "speaker_box": p(img="img/ui/speaker_box.bmp", at=(182, 395, 209, 409)),  # 有人说话时名字左上角的红色
+    "setting_pic": p(74, 268, img="img/home/setting.bmp", at=(59, 253, 91, 281)),
+    "tansuo": p(738, 137),
+
+    # 探索
+    "jingyanzhiguanqia": p(591, 237, img="img/tansuo/jingyan.bmp", at=(529, 160, 605, 236)),  # 经验值关卡
+    "managuanqia": p(801, 221),  # 玛娜关卡
+    "tansuo_zero": p(img="img/tansuo/zero.bmp", at=(654, 433, 678, 448)),
+    "tansuo_sytzcs": p(img="img/tansuo/sytzcs.bmp", at=(485, 432, 575, 452)),
+    "tansuo_back": p(30, 32),
+    "tansuo_saodangok2": p(472, 478, img="img/tansuo/jrtssy.bmp", at=(412, 462, 539, 487)),
+    "zdjjc": p(578, 402),
+    "gzjjc": p(820, 395),
+
+    # 右侧的kkr
+    "right_kkr": p(img="img/home/right_kkr.bmp", at=(27, 88, 922, 414)),
+
 }
+JJC_BTN = {
+    "list": p(img="img/jjc/list.bmp", at=(829, 80, 926, 101)),  # 列表更新
+    "shouqu": p(289, 334),
+    "shouqu_ok": p(480, 371, img="img/ui/ok_btn_2.bmp", at=(382, 351, 578, 390)),
+    "player": p(866, 168),
+    "tzcs": p(img="img/jjc/tzcs.bmp", at=(433, 134, 520, 158)),  # 挑战次数
+    "zdks": p(834, 454, img="img/jjc/zdks.bmp", at=(760, 429, 911, 473)),  # 战斗开始
+    "xyb": p(img="img/jjc/xyb.bmp", at=(642, 427, 948, 530)),
+    "dwbz": p(img="img/jjc/dwbz.bmp", at=(431, 24, 524, 51)),  # 队伍编组
+
+}
+JUQING_BTN = {
+    "caidanyuan": p(920, 36, img="img/juqing/caidanyuan.bmp", at=(901, 25, 934, 56)),
+    "tiaoguo_1": p(804, 38, img="img/juqing/tiaoguo_1.bmp", at=(765, 24, 849, 65)),
+    "tiaoguo_2": p(589, 367, img="img/juqing/tiaoguo_2.bmp", at=(567, 356, 611, 379))
+}
+
 LIWU_BTN = {
     "shouqulvli": p(img="img/home/shouqulvli.bmp", at=(98, 461, 202, 489)),
     "quanbushouqu": p(812, 470, img="img/home/quanbushouqu_on.bmp", at=(715, 458, 900, 494)),
@@ -129,82 +163,117 @@ JIAYUAN_BTN = {
 }
 
 NIUDAN_BTN = {
+    # 扭蛋的坐标会偏移！
     "PT_reset_ok": p(479, 365),
     "putong": p(862, 71),
-    "putong_mianfei": p(717, 354, img="img/niudan/putong_mianfei.bmp", at=(680, 358, 754, 383)),
+    "putong_mianfei": p(717, 364, img="img/niudan/putong_mianfei.bmp", at=(650, 340, 750, 400)),
     "putong_quxiao": p(367, 370, img="img/ui/quxiao.bmp", at=(274, 352, 468, 388)),
     "putong_ok": p(591, 360, img="img/ui/ok_btn_1.bmp", at=(493, 347, 688, 387)),
     "niudanjieguo_ok": p(481, 443, img="img/ui/ok_btn_2.bmp", at=(383, 423, 597, 462)),
-    "putong_wancheng": p(img="img/niudan/putong_wancheng.bmp", at=(647, 329, 784, 378)),
+    "putong_wancheng": p(img="img/niudan/putong_wancheng.bmp", at=(610, 320, 750, 450)),
 
 }
 HANGHUI_BTN = {
     "juanzengqingqiu": p(367, 39),
     "juanzeng": p(644, 385),
     # 组建行会（未加入公会）
-    "zujianhanghui": p(851,442,img="img/zujianhanghui.bmp",at=(746, 426, 931, 464)),
+    "zujianhanghui": p(851, 442, img="img/zujianhanghui.bmp", at=(746, 426, 931, 464)),
     # 设定（加入行会）
-    "sheding_join": p(860,79,img="img/hanghui/sheding_join.bmp",at=(840,68,879,89)),
+    "sheding_join": p(860, 79, img="img/hanghui/sheding_join.bmp", at=(840, 68, 879, 89)),
     # 加入行会设定输入框
-    "input_join": p(370,180,img="img/hanghui/input_join.bmp",at=(320,165,424,191)),
+    "input_join": p(370, 180, img="img/hanghui/input_join.bmp", at=(320, 165, 424, 191)),
     # 搜索（加入行会，亮）注意，暗的时候为0.97，亮为0.99
-    "sousuo_join": p(589,431,img="img/hanghui/sousuo_join.bmp",at=(506,417,663,448)),
+    "sousuo_join": p(589, 431, img="img/hanghui/sousuo_join.bmp", at=(506, 417, 663, 448)),
     # 进入行会（从搜索界面）
-    "in_join": p(890,155,img="img/hanghui/in_join.bmp",at=(878,126,902,185)),
+    "in_join": p(890, 155, img="img/hanghui/in_join.bmp", at=(878, 126, 902, 185)),
     # 加入行会
-    "join_btn": p(854,444,img='img/jiaru.bmp',at=(749, 427, 933, 460)),
+    "join_btn": p(854, 444, img='img/jiaru.bmp', at=(749, 427, 933, 460)),
     # 支援设定
-    "zhiyuansheding": p(83,348,img="img/hanghui/zhiyuansheding.bmp",at=(48,336,120,361)),
+    "zhiyuansheding": p(83, 348, img="img/hanghui/zhiyuansheding.bmp", at=(48, 336, 120, 362)),
     # 地下城支援1
-    "zhiyuan_dxc1": p(105,232,img="img/hanghui/zhiyuanjuese1.bmp",at=(65,194,142,272)),
+    "zhiyuan_dxc1": p(105, 232, img="img/hanghui/zhiyuanjuese1.bmp", at=(65, 194, 142, 272)),
     # 地下城支援2
-    "zhiyuan_dxc2": p(102,355,img="img/hanghui/zhiyuanjuese2.bmp",at=(64,315,140,393)),
+    "zhiyuan_dxc2": p(102, 355, img="img/hanghui/zhiyuanjuese2.bmp", at=(64, 315, 140, 393)),
     # 支援取消
-    "zhiyuanquxiao": p(img="img/hanghui/zhiyuanquxiao.bmp",at=(645,438,694,466)),
+    "zhiyuanquxiao": p(img="img/hanghui/zhiyuanquxiao.bmp", at=(645, 438, 694, 466)),
     # 战力排序（支援界面）用于判断是否处在战力排序状态
-    "zhanlipaixu": p(img="img/hanghui/zhanlipaixu.bmp",at=(684,78,722,100)),
+    "zhanlipaixu": p(img="img/hanghui/zhanlipaixu.bmp", at=(684, 78, 722, 100)),
     # 降序（支援界面）
-    "jiangxu_juese": p(863,90,img="img/hanghui/jiangxu_juese.bmp",at=(828,78,903,99)),
+    "jiangxu_juese": p(863, 90, img="img/hanghui/jiangxu_juese.bmp", at=(828, 78, 903, 99)),
     # 筛选条件（支援界面）
-    "shaixuantiaojian_juese": p(788,88,img="img/hanghui/shaixuantiaojian_juese.bmp",at=(777,78,800,99)),
+    "shaixuantiaojian_juese": p(788, 88, img="img/hanghui/shaixuantiaojian_juese.bmp", at=(777, 78, 800, 99)),
     # 角色战力”确认“蓝点
-    "zhanli_juese": p(289, 141,img="img/hanghui/landian_true.bmp",at=(266, 118, 311, 164)),
+    "zhanli_juese": p(289, 141, img="img/hanghui/landian_true.bmp", at=(266, 118, 311, 164)),
     # 角色筛选条件界面确认
-    "hanghui_ok_juese": p(591, 476,img="img/hanghui/hanghui_ok.bmp",at= (553, 461, 629, 490)),
+    "hanghui_ok_juese": p(591, 476, img="img/hanghui/hanghui_ok.bmp", at=(553, 461, 629, 490)),
     # 角色选择1
-    "juese1": p(102,162),
+    "juese1": p(102, 162),
     # 角色选择2
-    "juese2": p(210,164),
+    "juese2": p(210, 164),
     # 角色选择3
-    "juese3": p(318,166),
+    "juese3": p(318, 166),
     # 角色选择4
-    "juese4": p(431,166),
+    "juese4": p(431, 166),
     # 角色选择确认
-    "juesesheding": p(838,454,img="img/hanghui/juesesheding.bmp",at=(791,440,885,466)),
+    "juesesheding": p(838, 454, img="img/hanghui/juesesheding.bmp", at=(791, 440, 885, 466)),
     # 角色选择二次确认
-    "hanghui_ok_double": p(591,431,img="img/hanghui/hanghui_ok.bmp",at=(553, 416, 630, 446)),
-
+    "hanghui_ok_double": p(591, 431, img="img/hanghui/hanghui_ok.bmp", at=(553, 416, 630, 446)),
 
     # 返回键隔壁的“行会”字样
     "hanghui_title": p(img="img/hanghui.bmp", at=(63, 12, 123, 45)),
     # 成员信息
-    "chengyuanxinxi": p(237,353,img="img/hanghui/chengyuanxinxi.bmp", at=(203, 339, 272, 359)),
+    "chengyuanxinxi": p(237, 353, img="img/hanghui/chengyuanxinxi.bmp", at=(203, 339, 272, 359)),
     # 成员信息界面的“成员列表”按钮
-    "chengyuanliebiao": p(img='img/chengyuanliebiao.bmp',at=(329, 15, 450, 42)),
+    "chengyuanliebiao": p(img='img/chengyuanliebiao.bmp', at=(329, 15, 450, 42)),
     # 筛选条件（成员界面）
-    "shaixuantiaojian_chengyuan": p(793,84,img="img/hanghui/shaixuantiaojian_chengyuan.bmp",at=(782,80,810,103)),
+    "shaixuantiaojian_chengyuan": p(793, 84, img="img/hanghui/shaixuantiaojian_chengyuan.bmp", at=(782, 80, 810, 103)),
     # 筛选条件里的分类
-    "fenlei": p(img="img/hanghui/fenlei.bmp",at=(454,132,501,158)),
+    "fenlei": p(img="img/hanghui/fenlei.bmp", at=(454, 132, 501, 158)),
     # 成员全角色战力"确认"蓝点
-    "zhanli_chengyuan": p(285,299,img="img/hanghui/landian_true.bmp",at=(265,280,310,326)),
+    "zhanli_chengyuan": p(285, 299, img="img/hanghui/landian_true.bmp", at=(265, 280, 310, 326)),
     # 降序按钮（筛选成员界面）
-    "jiangxu_chengyuan": p(868,92,img="img/hanghui/jiangxu_chengyuan.bmp",at=(843,82,876,102)),
+    "jiangxu_chengyuan": p(868, 92, img="img/hanghui/jiangxu_chengyuan.bmp", at=(843, 82, 876, 102)),
     # 成员管理(第一个)
-    "chengyuanguanli_first": p(727,191,img="img/hanghui/chengyuanguanli.bmp",at=(701,185,768,211)),
+    "chengyuanguanli_first": p(727, 191, img="img/hanghui/chengyuanguanli.bmp", at=(701, 185, 768, 211)),
     # 开除
-    "kaichu": p(647,170,img="img/hanghui/kaichu.bmp",at=(627,161,668,181)),
+    "kaichu": p(647, 170, img="img/hanghui/kaichu.bmp", at=(627, 161, 668, 181)),
     # 行会确认
-    "hanghui_ok": p(605,365,img="img/hanghui/hanghui_ok.bmp",at=(554,353,630,382)),
+    "hanghui_ok": p(605, 365, img="img/hanghui/hanghui_ok.bmp", at=(554, 353, 630, 382)),
+    # 请求捐赠装备
+    "qqjzzb": p(404, 431, img="img/hanghui/qqzjzb.bmp", at=(342, 419, 460, 440)),
+    # 发起捐赠请求
+    "fqjzqq": p(585, 478, img="img/hanghui/fqjzqq.bmp", at=(528, 466, 646, 485)),
+    # 确认发出请求
+    "jzqq_ok": p(589, 433, img="img/ui/ok_btn_1.bmp", at=(487, 409, 691, 457)),
+    # 稀有度
+    "sort_xiyou": p(694, 83, img="img/hanghui/sort_xiyou.bmp", at=(670, 73, 719, 90)),
+    # 降序（捐赠装备）
+    "sort_down": p(860, 82, img="img/hanghui/sort_down.bmp", at=(841, 73, 877, 91)),
+    # 分类（捐赠装备）-ok
+    "sort_ok": p(590, 370, img="img/ui/ok_btn_1.bmp", at=(488, 346, 692, 394)),
+    # 捐赠请求情况
+    "jzqqqk": p(405, 429, img="img/hanghui/jzqqqk.bmp", at=(351, 421, 450, 441)),
+    # 捐赠请求结果
+    "jzqqjg": p(402, 432, img="img/hanghui/jzqqjg.bmp", at=(357, 422, 447, 436)),
+    # 撤下支援 1
+    "zyjs_1": p(406, 252),
+    # 撤下支援 2
+    "zyjs_2": p(407, 373),
+    # 支援结束确认
+    "zyjsqr": p(img="img/hanghui/zyjsqr.bmp", at=(419, 133, 540, 155)),
+    # 支援结束确认_ok
+    "zyjsqr_ok": p(590, 370, img="img/ui/ok_btn_1.bmp", at=(488, 346, 692, 394)),
+    # 收取报酬
+    "sqbc": p(img="img/hanghui/sqbc.bmp", at=(439, 32, 521, 52)),
+
+}
+ZHUCAIDAN_BTN = {
+    "bangzhu": p(img="img/zhucaidan/bangzhu.bmp", at=(493, 247, 695, 290)),
+    "jianjie": p(img="img/zhucaidan/jianjie.bmp", at=(267, 241, 499, 290)),
+    "daoju": p(img="img/zhucaidan/daoju.bmp", at=(475, 112, 610, 187)),
+    "saodangquan": p(img="img/zhucaidan/saodangquan.bmp"),
+    "jianjie_L": p(img="img/zhucaidan/jianjie_L.bmp", at=(59, 1, 137, 48)),
+    "daojuyilan": p(img="img/zhucaidan/daojuyilan.bmp", at=(57, 3, 172, 51)),
 }
 FIGHT_BTN = {
     "auto_on": p(914, 420, img="img/fight/auto_on.bmp", at=(895, 404, 925, 441)),
@@ -224,13 +293,14 @@ FIGHT_BTN = {
     },
     "sort_down": p(742, 89, img="img/fight/sort_down.bmp", at=(720, 79, 765, 99)),
     "sort_level": p(596, 88, img="img/fight/sort_level.bmp", at=(576, 78, 617, 99)),
+    "sort_star": p(596, 90, img="img/fight/sort_star.bmp", at=(577, 78, 616, 99)),
     "sort_up": p(741, 88, img="img/fight/sort_up.bmp", at=(722, 77, 760, 99)),
     "sort_power": p(597, 89, img="img/fight/sort_power.bmp", at=(575, 79, 618, 99)),
     "cat_dengji": p(69, 142, name="等级"),  # cat：分类界面
     "cat_zhanli": p(290, 141, name="战力"),
     "cat_rank": p(511, 142, name="RANK"),
     "cat_star": p(731, 139, name="星数"),
-    "cat_ok": p(587, 478, img="img/ui/btn_ok_1.bmp", at=(487, 454, 691, 502)),  # 分类界面：OK
+    "cat_ok": p(587, 478, img="img/ui/ok_btn_1.bmp", at=(487, 454, 691, 502)),  # 分类界面：OK
     "my_team": p(867, 88),  # 我的队伍
     "team_h": {
         # 编组1，编组2，。。。，编组5
@@ -254,7 +324,7 @@ FIGHT_BTN = {
         4: p(425, 167),
         5: p(531, 170),
     },
-    "team_close": p(476, 477, img="img/ui/btn_close_1.bmp", at=(374, 455, 580, 503)),  # 选队界面的关闭按钮
+    "team_close": p(476, 477, img="img/ui/close_btn_1.bmp", at=(374, 455, 580, 503)),  # 选队界面的关闭按钮
     "shbg": p(img="img/fight/shbg.bmp", at=(709, 23, 898, 52)),  # 伤害报告
     "menu": p(img="img/fight/menu.bmp", at=(871, 18, 928, 32)),
     "qwjsyl": p(576, 495, img="img/fight/qwjsyl.bmp", at=(392, 457, 948, 528)),  # 前往角色一览
@@ -271,9 +341,50 @@ FIGHT_BTN = {
     "tiaozhan2": p(839, 453, img="img/ui/tiaozhan2.bmp", at=(814, 440, 865, 466)),
     "xiayibu2": p(829, 490, img="img/ui/xiayibu2.bmp", at=(785, 477, 870, 505)),  # 短的下一步，用于“战利品”界面
     "xiayibu": p(832, 504, img="img/ui/xiayibu.bmp", at=(731, 480, 932, 527)),  # 长的下一步，用于经验值、好感度页面
-    "qwzxgq": p(808, 493, img="img/fight/qwzxgq.bmp", at=(745, 481, 869, 504)),
+    "qwzxgq": p(808, 493, img="img/fight/qwzxgq.bmp", at=(745, 481, 869, 504)),  # 前往主线关卡：输的时候会显示
+    "baochou": p(img="img/fight/baochou.bmp", at=(61, 414, 114, 481)),
+    "dengjitisheng": p(img="img/fight/dengjitisheng.bmp", at=(431, 132, 525, 158)),
+    "caidan": p(902, 33, img="img/fight/menu.bmp", at=(856, 14, 942, 35)),
+    "fangqi_1": p(625, 376, img="img/fight/fangqi_1.bmp", at=(558, 346, 690, 392)),
+    "fangqi_2": p(625, 376, img="img/fight/fangqi_2.bmp", at=(491, 346, 686, 392)),
 }
-MAX_DXC = 3  # 一共出了多少个地下城关
+
+JUESE_BTN = {
+    "duiwu": p(img="img/juese/duiwu.bmp", at=(855, 15, 929, 35)),
+    "mana_ball": p(img="img/juese/mana_ball.bmp", at=(609, 21, 620, 34)),
+    "first_juese": p(175, 140),
+    "nine_juese": {
+        1: p(173, 147),
+        2: p(464, 150),
+        3: p(768, 145),
+        4: p(174, 290),
+        5: p(480, 292),
+        6: p(772, 299),
+        7: p(163, 438),
+        8: p(476, 430),
+        9: p(789, 427),
+    },
+    "rank_tisheng": p(246, 333, img="img/juese/rank_tisheng.bmp", at=(204, 323, 289, 335)),
+    "rank_tisheng_ok": p(589, 478, img="img/ui/ok_btn_1.bmp", at=(487, 454, 691, 502)),
+    "rank_tisheng_ok_noequ": p(588, 369, img="img/juese/ok_btn.bmp", at=(567, 358, 611, 380)),  # 不需要消耗时，强化的OK在上头
+    "rank_tisheng_ok2": p(480, 371, img="img/ui/ok_btn_2.bmp", at=(382, 351, 578, 390)),
+    "yjzb": p(241, 330, img="img/juese/yjzb.bmp", at=(197, 323, 294, 345)),
+    "yjzb_off": p(img="img/juese/yjzb_off.bmp", at=(198, 323, 292, 346)),
+    "zdqh": p(368, 436, img="img/juese/zdqh.bmp", at=(313, 418, 418, 450)),
+    "tjqhcd": p(img="img/juese/tjqhcd.bmp", at=(414, 31, 541, 49)),
+    "sort_down": p(744, 28, img="img/juese/sort_down.bmp", at=(753, 18, 798, 38)),
+    "sort_up": p(755, 28, img="img/juese/sort_up.bmp", at=(756, 17, 798, 36)),
+    "sort_level": p(629, 27, img="img/juese/sort_level.bmp", at=(611, 16, 647, 36)),
+    "tuijianguanqia": p(img="img/juese/tuijianguanqia.bmp", at=(280, 90, 327, 102)),
+    "firstqianghua_stars": {
+        1: p(587, 257),
+        2: p(612, 256),
+        3: p(637, 257),
+    },
+    "fhqhdj_ok": p(480, 479, img="img/ui/ok_btn_2.bmp", at=(382, 459, 578, 498)),  # 返还强化道具
+
+}
+MAX_DXC = 4  # 一共出了多少个地下城关
 
 DXC_ELEMENT = {
     "chetui": p(806, 431, img="img/dxc/chetui.bmp", at=(779, 421, 833, 440)),
@@ -295,6 +406,26 @@ DXC_ELEMENT = {
     "dxc_shop_btn": p(918, 30, img="img/dxc/shop.bmp", at=(905, 21, 924, 41)),
     # 地下城选关界面商店
     "dxc_choose_shop": p(917, 28, img="img/dxc/dxc_choose_shop.bmp", at=(906, 19, 928, 36)),
+    # 支援
+    "zhiyuan_dianren": {
+        1: p(100, 173),
+        2: p(213, 208),
+        3: p(324, 173),
+        4: p(427, 173),
+        5: p(533, 173),
+        6: p(640, 173),
+        7: p(746, 173),
+        8: p(855, 173),
+    },
+    # 勾选了支援
+    # 1: p(100, 173, img="img/dxc/dxc_gouxuan.bmp", at=(158, 142, 164, 164)),
+    # 2: p(213, 208, img="img/dxc/dxc_gouxuan.bmp", at=(260, 131, 295, 185)),
+    "zhiyuan_gouxuan": p(img="img/dxc/dxc_gouxuan.bmp"),
+    "quanbu_white": p(98, 88, img="img/dxc/quanbu_white.bmp", at=(49, 71, 141, 109)),
+    "quanbu_blue": p(98, 88, img="img/dxc/quanbu_blue.bmp", at=(49, 71, 141, 109)),
+    "zhandoukaishi": p(833, 470, img="img/dxc/zhandoukaishi.bmp", at=(761, 430, 912, 471)),
+    "zhiyuan_white": p(477, 86, img="img/dxc/zhiyuan_white.bmp", at=(433, 75, 524, 99)),
+    "zhiyuan_blue": p(477, 86, img="img/dxc/zhiyuan_blue.bmp", at=(430, 73, 521, 104)),
 }
 DXC_NUM = {
     # 没有OCR用此来检测层数
@@ -313,9 +444,10 @@ DXC_NUM = {
 }
 DXC_ENTRANCE = {
     # 大按钮：云海、密林、断崖的坐标
-    1: p(252, 255, name="云海的山脉"),
-    2: p(485, 250, name="密林的大树"),
-    3: p(711, 247, name="断崖的遗迹"),
+    1: p(129, 244, name="云海的山脉"),
+    2: p(366, 245, name="密林的大树"),
+    3: p(600, 246, name="断崖的遗迹"),
+    4: p(831, 246, name="沧海的孤塔"),
 }
 DXC_COORD = {
     # 每个地下城里面每一个关卡的位置
@@ -332,21 +464,7 @@ DXC_COORD = {
         10: p(629, 195),
     }
 }
-MAX_MAP = 12
-HARD_ID = {
-    1: p(img='img/hard/1.bmp'),
-    2: p(img='img/hard/2.bmp'),
-    3: p(img='img/hard/3.bmp'),
-    4: p(img='img/hard/4.bmp'),
-    5: p(img='img/hard/5.bmp'),
-    6: p(img='img/hard/6.bmp'),
-    7: p(img='img/hard/7.bmp'),
-    8: p(img='img/hard/8.bmp'),
-    9: p(img='img/hard/9.bmp'),
-    10: p(img='img/hard/10.bmp'),
-    11: p(img='img/hard/11.bmp'),
-    12: p(img='img/hard/12.bmp'),
-}
+MAX_MAP = 13
 HARD_COORD = {
     1: {
         1: p(250, 340),
@@ -408,6 +526,11 @@ HARD_COORD = {
         2: p(480, 355),
         3: p(765, 240),
     },
+    13: {
+        1: p(222, 245),
+        2: p(485, 348),
+        3: p(765, 342),
+    }
 }
 
 SHOP_BTN = {
@@ -417,7 +540,6 @@ SHOP_BTN = {
     "fanhui": p(30, 29, img="img/ui/fanhui.bmp", at=(16, 16, 45, 43)),
 }
 MAOXIAN_BTN = {
-    "title_box": p(at=(356, 61, 595, 104)),
     "normal_on": p(699, 82, img="img/maoxian/normal_on.bmp", at=(656, 72, 748, 91)),
     "normal_off": p(701, 82, img="img/maoxian/normal_off.bmp", at=(656, 72, 749, 92)),
     "hard_on": p(825, 83, img="img/maoxian/hard_on.bmp", at=(780, 70, 871, 92)),
@@ -430,36 +552,49 @@ MAOXIAN_BTN = {
     "saodang_ok": p(590, 370, img="img/ui/ok_btn_1.bmp", at=(488, 346, 692, 394)),
     "saodang_tiaoguo": p(475, 477, img="img/maoxian/saodang_tiaoguo.bmp", at=(380, 460, 574, 496)),
     "saodang_ok2": p(480, 479, img="img/ui/ok_btn_2.bmp", at=(382, 459, 578, 498)),
-    "saodang_off": p(img="img/maoxian/saodang_off.bmp", at=(680, 315, 824, 350)),  # 使用1张 灰色
+    "saodang_off": p(753, 334, img="img/maoxian/saodang_off.bmp", at=(680, 315, 824, 350)),  # 使用1张 灰色
     "quxiao": p(667, 455, img="img/ui/quxiao2.bmp", at=(597, 440, 736, 470)),
     "xianding": p(586, 368, img="img/maoxian/xianding.bmp", at=(520, 354, 657, 380)),
+    "xianding_quxiao": p(371, 370, img="img/ui/quxiao.bmp", at=(274, 352, 468, 388)),
     "zaicitiaozhan": p(658, 489, img="img/maoxian/zaicitiaozhan.bmp", at=(592, 475, 723, 505)),
     "chongshi_ok": p(590, 370, img="img/ui/ok_btn_1.bmp", at=(488, 346, 692, 394)),
     "no_tili": p(img="img/maoxian/no_tili.bmp", at=(429, 242, 518, 287)),
     "buytili_ok": p(590, 370, img="img/ui/ok_btn_1.bmp", at=(488, 346, 692, 394)),
     "buytili_quxiao": p(371, 370, img="img/ui/quxiao.bmp", at=(274, 352, 468, 388)),
     "buytili_ok2": p(480, 371, img="img/ui/ok_btn_2.bmp", at=(382, 351, 578, 390)),
+    "tlhf": p(img="img/maoxian/tlhf.bmp", at=(434, 137, 524, 157)),
     "no_cishu": p(img="img/maoxian/no_cishu.bmp", at=(400, 229, 541, 289)),
+    "chaochushangxian": p(img="img/maoxian/chaochushangxian.bmp", at=(343, 207, 602, 232)),
+    "sytzcshf": p(img="img/maoxian/sytzcshf.bmp", at=(391, 132, 562, 155)),  # 剩余挑战次数恢复
+    "lock": p(img="img/maoxian/lock.bmp"),
+    "tiaozhan_off": p(img="img/maoxian/tiaozhan_off.bmp", at=(768, 437, 909, 468)),
+    "tiaozhan_on": p(img="img/maoxian/tiaozhan_on.bmp", at=(768, 439, 910, 470)),
+    "tuanduizhan": p(img="img/maoxian/tztdzb.bmp", at=(415, 77, 540, 97)),
+    "tuanduizhan_quxiao": p(371, 433, img="img/ui/quxiao.bmp", at=(274, 415, 468, 451)),
+    "sdqqr": p(img="img/maoxian/sdqqr.bmp", at=(429, 129, 527, 154)),  # 扫荡券确认
+    "jsjsqr": p(img="img/maoxian/jsqsqr.bmp", at=(415, 31, 550, 52)),  # 角色解锁确认
 
 }
-NORMAL_ID = {
-    1: p(img='img/normal/1.bmp'),
-    2: p(img='img/normal/2.bmp'),
-    3: p(img='img/normal/3.bmp'),
-    4: p(img='img/normal/4.bmp'),
-    5: p(img='img/normal/5.bmp'),
-    6: p(img='img/normal/6.bmp'),
-    7: p(img='img/normal/7.bmp'),
-    8: p(img='img/normal/8.bmp'),
-    9: p(img='img/normal/9.bmp'),
-    10: p(img='img/normal/10.bmp'),
-    11: p(img='img/normal/11.bmp'),
-    12: p(img='img/normal/12.bmp'),
+ZHUXIAN_ID = {
+    1: p(img="img/zhuxian/1.bmp", at=(453, 74, 516, 88)),
+    2: p(img="img/zhuxian/2.bmp", at=(447, 74, 530, 88)),
+    3: p(img="img/zhuxian/3.bmp", at=(456, 77, 520, 88)),
+    4: p(img="img/zhuxian/4.bmp", at=(447, 74, 527, 86)),
+    5: p(img="img/zhuxian/5.bmp", at=(446, 74, 530, 86)),
+    6: p(img="img/zhuxian/6.bmp", at=(447, 75, 527, 86)),
+    7: p(img="img/zhuxian/7.bmp", at=(437, 74, 488, 88)),
+    8: p(img="img/zhuxian/8.bmp", at=(449, 75, 528, 87)),
+    9: p(img="img/zhuxian/9.bmp", at=(447, 75, 527, 87)),
+    10: p(img="img/zhuxian/10.bmp", at=(450, 74, 531, 86)),
+    11: p(img="img/zhuxian/11.bmp", at=(449, 73, 523, 88)),
+    12: p(img="img/zhuxian/12.bmp", at=(442, 74, 507, 88)),
+    13: p(img="img/zhuxian/13.bmp", at=(443, 75, 538, 86)),
 }
 
 NORMAL_COORD = {
     1: {
         "right": {
+            -1: None
         },
         "left": {
             10: p(830, 350, name="1-10"),
@@ -476,6 +611,7 @@ NORMAL_COORD = {
     },
     2: {
         "right": {
+            -1: None
         },
         "left": {
             12: p(809, 226, name="2-12"),
@@ -494,6 +630,7 @@ NORMAL_COORD = {
     },
     3: {
         "right": {
+            -1: None
         },
         "left": {
             12: p(847, 214, name="3-12"),
@@ -698,6 +835,29 @@ NORMAL_COORD = {
             1: p(185, 210, name="12-1"),
         },
     },
+    13: {
+        "right": {
+            17: p(749, 329),
+            16: p(585, 314),
+            15: p(659, 424),
+            14: p(499, 429),
+            13: p(443, 307),
+            12: p(333, 385),
+            11: p(202, 356),
+        },
+        "left": {
+            10: p(817, 279),
+            9: p(686, 259),
+            8: p(741, 379),
+            7: p(595, 391),
+            6: p(475, 351),
+            5: p(555, 249),
+            4: p(428, 240),
+            3: p(321, 280),
+            2: p(238, 185),
+            1: p(109, 206),
+        }
+    }
 
 }
 
@@ -708,9 +868,63 @@ USER_DEFAULT_DICT = {
         "finished": False,  # 是否运行完毕
         "current": "...",  # 当前执行的任务
         "error": None  # 报错情况
+    },
+    "tuitu_status": {
+        # 推图状态
+        "last": None,
+        "max": None,
+        "Hlast": None,
+        "Hmax": None,
+    },
+    "time_status": {
+        # 时间状态
+        "juanzeng": 0,  # 上次捐赠时间
+        "dianzan": 0,  # 上次点赞时间
+        "buyexp": 0,  # 上次购买经验时间
+        "niudan": 0,  # 上次免费扭蛋时间
+        "tansuo": 0,  # 上次探索时间
+    }
+    ,
+    "daily_status": {
+        # 每日刷图
+        "buy_tili": 0,  # 当日买体力次数
+        "normal": {},  # normal图刷图记录
+        "hard": {},  # hard图刷图记录
+        "last_time": 0,  # 上一次刷图时间
     }
 
 }
+
+'''
+!!!!警告!!!!!
+!!!!下面这个是活动的坐标，请加入的时候一定要打上活动的备注！！！！！！
+'''
+ACTIVITY_COORD = {
+    # 珠希与美冬的无人岛0金币生活 2020/8/30
+    "shuihei_summer_activity": {
+        "left": {
+            9: p(835, 340),
+            8: p(734, 293),
+            7: p(653, 208),
+            6: p(580, 278),
+            5: p(489, 311),
+            4: p(405, 398),
+            3: p(334, 301),
+            2: p(270, 218),
+            1: p(165, 290)
+        },
+        "right": {
+            16: p(822, 239),
+            15: p(688, 175),
+            14: p(624, 249),
+            13: p(541, 330),
+            12: p(464, 243),
+            11: p(363, 351),
+            10: p(301, 216)
+        }
+    }
+}
+
 # 显然后面还没写
 # 等有空补全
 # 准备写个GUI来快速标坐标

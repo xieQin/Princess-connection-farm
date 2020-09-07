@@ -1,6 +1,6 @@
 import time
 
-from core.constant import MAIN_BTN
+from core.constant import MAIN_BTN, ZHUCAIDAN_BTN
 # from core.log_handler import pcr_log
 from core.utils import random_name, CreatIDnum
 from ._base import BaseMixin
@@ -14,6 +14,9 @@ class LoginMixin(BaseMixin):
 
     def start(self):
         """
+        项目地址:https://github.com/bbpp222006/Princess-connection
+        作者：bbpp222006
+        协议：MIT License
         启动脚本，请确保已进入游戏页面。
         """
         while True:
@@ -28,9 +31,20 @@ class LoginMixin(BaseMixin):
                 self.app = self.d.session("com.bilibili.priconne")
                 self.appRunning = False
                 continue
-        self.dWidth, self.dHeight = self.d.window_size()
 
     def do_login(self, ac, pwd):  # 执行登陆逻辑
+        """
+        :param ac:
+        :param pwd:
+        :return:
+        """
+        for retry in range(30):
+            if not self.d(resourceId="com.bilibili.priconne:id/bsgamesdk_edit_username_login").exists():
+                time.sleep(2)
+            else:
+                break
+        else:
+            raise Exception("进入登陆页面失败！")
         self.d(resourceId="com.bilibili.priconne:id/bsgamesdk_edit_username_login").click()
         self.d.clear_text()
         self.d.send_keys(str(ac))
@@ -45,6 +59,14 @@ class LoginMixin(BaseMixin):
             return 0  # 正常
 
     def login(self, ac, pwd):
+        """
+        项目地址:https://github.com/bbpp222006/Princess-connection
+        作者：bbpp222006
+        协议：MIT License
+        :param ac:
+        :param pwd:
+        :return:
+        """
         error_flag = 0
         try:
             try_count = 0
@@ -65,6 +87,8 @@ class LoginMixin(BaseMixin):
                     raise Exception("点了1000次右上角了，重启罢！")
                 # todo 登陆失败报错：-32002 Client error: <> data: Selector [
                 #  resourceId='com.bilibili.priconne:id/bsgamesdk_id_welcome_change'], method: None
+                if self.d(resourceId="com.bilibili.priconne:id/bsgamesdk_edit_authentication_name").exists(timeout=0.1):
+                    return True
                 if self.d(resourceId="com.bilibili.priconne:id/bsgamesdk_id_welcome_change").exists():
                     self.d(resourceId="com.bilibili.priconne:id/bsgamesdk_id_welcome_change").click()
                 if self.d(resourceId="com.bilibili.priconne:id/bsgamesdk_edit_username_login").exists():
@@ -80,6 +104,14 @@ class LoginMixin(BaseMixin):
             return self.do_login(ac, pwd)
 
     def auth(self, auth_name, auth_id):
+        """
+        项目地址:https://github.com/bbpp222006/Princess-connection
+        作者：bbpp222006
+        协议：MIT License
+        :param auth_name:
+        :param auth_id:
+        :return:
+        """
         self.d(resourceId="com.bilibili.priconne:id/bsgamesdk_edit_authentication_name").click()
         self.d.clear_text()
         self.d.send_keys(str(auth_name))
@@ -96,8 +128,8 @@ class LoginMixin(BaseMixin):
             self.auth(auth_name=auth_name, auth_id=auth_id)
 
     def change_acc(self):  # 切换账号
-        self.lock_img('img/bangzhu.bmp', elseclick=[(871, 513)])  # 锁定帮助
-        self.lock_img('img/ok.bmp', ifclick=[(591, 369)], elseclick=[(165, 411)])
-        self.lock_no_img('img/bangzhu.bmp', elseclick=[(871, 513), (165, 411), (591, 369)])
+        self.lock_img(ZHUCAIDAN_BTN["bangzhu"], elseclick=[(871, 513)])  # 锁定帮助
+        self.lock_img('img/ok.bmp', ifclick=[(591, 369)], elseclick=[(165, 411)], at=(495, 353, 687, 388))
+        self.lock_no_img(ZHUCAIDAN_BTN["bangzhu"], elseclick=[(871, 513), (165, 411), (591, 369)])
         # pcr_log(self.account).write_log(level='info', message='%s账号完成任务' % self.account)
         # pcr_log(self.account).server_bot("warning", "%s账号完成任务" % self.account)

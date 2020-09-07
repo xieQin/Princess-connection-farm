@@ -16,13 +16,15 @@ class DXCBaseMixin(FightBaseMixin):
         self.dxc_switch = 0  # 0开，1锁
         self.is_dixiacheng_end = 0  # 地下城是否结束，0未结束，1结束
 
-    def dxc_kkr(self):
+    def dxc_kkr(self, screen_shot=None):
         """
         处理跳脸
         :return:
         """
-        time.sleep(2)  # 等妈出现
-        if self.is_exists(DXC_ELEMENT["dxc_kkr"]):
+        if screen_shot is None:
+            screen_shot = self.getscreen()
+        # time.sleep(2)  # 等妈出现
+        if self.is_exists(DXC_ELEMENT["dxc_kkr"], screen=screen_shot):
             self.chulijiaocheng(turnback=None)
             if self.is_exists(DXC_ELEMENT["dxc_in_shop"]):
                 self.click(DXC_ELEMENT["dxc_in_shop"])
@@ -33,6 +35,8 @@ class DXCBaseMixin(FightBaseMixin):
                 self.lock_img('img/dixiacheng.jpg', elseclick=(480, 505), elsedelay=1, alldelay=1)
                 self.click(900, 138, post_delay=3)
                 self.lock_img(DXC_ELEMENT["chetui"])  # 锁定撤退
+            return True
+        return False
 
     def dxczuobiao(self, x, y, auto, speed, bianzu=0, duiwu=0, min_live=5):
         """
@@ -75,7 +79,8 @@ class DXCBaseMixin(FightBaseMixin):
         mode = 0
         while mode == 0:
             # 等待战斗结束
-            mode = self.get_fight_state(max_retry=10)
+            mode = self.get_fight_state(max_retry=15, check_hat=True)
+            time.sleep(3)
         if mode == -1:
             return -1
         elif mode == 1:
@@ -129,8 +134,7 @@ class DXCBaseMixin(FightBaseMixin):
                     self.click_btn(DXC_ENTRANCE[dxc_id], elsedelay=1, until_appear=DXC_ELEMENT["quyuxuanzequeren_ok"])
                     self.click_btn(DXC_ELEMENT["quyuxuanzequeren_ok"],
                                    until_appear={DXC_ELEMENT["chetui"]: 1, DXC_ELEMENT["dxc_kkr"]: 2})
-            self.dxc_kkr()
-        self.lock_img(DXC_ELEMENT["chetui"], elsedelay=0.5)  # 锁定撤退
+        self.lock_img(DXC_ELEMENT["chetui"], elsedelay=0.5, side_check=self.dxc_kkr)  # 锁定撤退
         return True
 
     def check_dxc_level(self, dxc_id):
