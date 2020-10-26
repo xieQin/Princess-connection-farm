@@ -1,7 +1,9 @@
+import gc
 import time
 
 from core.constant import MAIN_BTN, ZHUCAIDAN_BTN
-# from core.log_handler import pcr_log
+from core.pcr_config import debug, captcha_wait_time
+from core.safe_u2 import timeout
 from core.utils import random_name, CreatIDnum
 from ._base import BaseMixin
 
@@ -12,6 +14,7 @@ class LoginMixin(BaseMixin):
     包含登录相关操作的脚本
     """
 
+    @timeout(180, "start执行超时：超过3分钟")
     def start(self):
         """
         项目地址:https://github.com/bbpp222006/Princess-connection
@@ -52,7 +55,30 @@ class LoginMixin(BaseMixin):
         self.d.clear_text()
         self.d.send_keys(str(pwd))
         self.d(resourceId="com.bilibili.priconne:id/bsgamesdk_buttonLogin").click()
-        time.sleep(5)
+        time.sleep(20)
+        if debug:
+            print("等待认证")
+        while self.d(text="请滑动阅读协议内容").exists():
+            if debug:
+                print("发现协议")
+            self.d.touch.down(814, 367).sleep(1).up(814, 367)
+            self.d(text="同意").click()
+            time.sleep(10)
+        flag = False
+        if self.d(text="Geetest").exists():
+            flag = True
+            self.phone_privacy()
+            self.log.write_log("error", message='%s账号出现了验证码，请在%d秒内手动输入验证码' % (self.account, captcha_wait_time))
+            now_time = time.time()
+            while time.time() - now_time < captcha_wait_time:
+                time.sleep(1)
+                if not self.d(text="Geetest").exists():
+                    flag = False
+                    break
+        if flag:
+            return -1
+        if debug:
+            print("认证结束")
         if self.d(resourceId="com.bilibili.priconne:id/bsgamesdk_edit_authentication_name").exists(timeout=0.1):
             return 1  # 说明要进行认证
         else:
@@ -69,6 +95,10 @@ class LoginMixin(BaseMixin):
         """
         error_flag = 0
         try:
+            # 看是否跳出主菜单
+            self.lock_no_img(ZHUCAIDAN_BTN["bangzhu"], elseclick=[(871, 513), (165, 411), (591, 369)])
+            self.lock_no_img('img/ok.bmp', elseclick=[(591, 369)], at=(495, 353, 687, 388))
+
             try_count = 0
             while True:
                 try_count += 1
@@ -121,9 +151,12 @@ class LoginMixin(BaseMixin):
         self.d(resourceId="com.bilibili.priconne:id/bsgamesdk_authentication_submit").click()
         self.d(resourceId="com.bilibili.priconne:id/bagamesdk_auth_success_comfirm").click()
 
+    @timeout(300, "login_auth登录超时，超过5分钟")
     def login_auth(self, ac, pwd):
         need_auth = self.login(ac=ac, pwd=pwd)
-        if need_auth:
+        if need_auth == -1:  # 这里漏了一句，无法检测验证码。
+            return -1
+        if need_auth == 1:
             auth_name, auth_id = random_name(), CreatIDnum()
             self.auth(auth_name=auth_name, auth_id=auth_id)
 
@@ -131,5 +164,7 @@ class LoginMixin(BaseMixin):
         self.lock_img(ZHUCAIDAN_BTN["bangzhu"], elseclick=[(871, 513)])  # 锁定帮助
         self.lock_img('img/ok.bmp', ifclick=[(591, 369)], elseclick=[(165, 411)], at=(495, 353, 687, 388))
         self.lock_no_img(ZHUCAIDAN_BTN["bangzhu"], elseclick=[(871, 513), (165, 411), (591, 369)])
+        self.phone_privacy()
+        gc.collect()
         # pcr_log(self.account).write_log(level='info', message='%s账号完成任务' % self.account)
         # pcr_log(self.account).server_bot("warning", "%s账号完成任务" % self.account)

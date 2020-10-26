@@ -14,6 +14,16 @@ class FightBaseMixin(ToolsMixin):
     包括与战斗相关的基本操作
     """
 
+    def Drag_Right(self):
+        self.d.touch.down(600, 270).sleep(0.1).move(200, 270).sleep(0.2).up(200, 270)
+        # self.d.drag(600, 270, 200, 270, 0.1)  # 拖拽到最右
+        time.sleep(self.change_time)
+
+    def Drag_Left(self):
+        self.d.touch.down(200, 270).sleep(0.1).move(600, 270).sleep(0.2).up(600, 270)
+        # self.d.drag(200, 270, 600, 270, 0.1)  # 拖拽到最左
+        time.sleep(self.change_time)
+
     def get_fight_middle_stars(self, screen=None):
         """
         获取战斗胜利后中间的星数
@@ -73,7 +83,16 @@ class FightBaseMixin(ToolsMixin):
             else:
                 sc = screen
                 screen = None
-            if self.is_exists(FIGHT_BTN["shbg"], screen=sc):
+            if check_xd and self.is_exists(MAOXIAN_BTN["xianding"]):
+                if go_xd:
+                    self.click_btn(MAOXIAN_BTN["xianding"])
+                    return 3
+                else:
+                    self.click_btn(MAOXIAN_BTN["xianding_quxiao"])
+                    retry = 0
+                    continue
+                    # return 1
+            elif self.is_exists(FIGHT_BTN["shbg"], screen=sc):
                 # 出现伤害报告，战斗结束 （地下城）
                 if self.is_exists(FIGHT_BTN["qwjsyl"], screen=sc):
                     # 前往角色一览：失败
@@ -105,13 +124,6 @@ class FightBaseMixin(ToolsMixin):
                 # 检测到右上角跳过：点击 （羁绊剧情）
                 self.click(MAIN_BTN["tiaoguo"])
                 retry = 0
-            elif check_xd and self.is_exists(MAOXIAN_BTN["xianding"]):
-                if go_xd:
-                    self.click_btn(MAOXIAN_BTN["xianding"])
-                    return 3
-                else:
-                    self.click_btn(MAOXIAN_BTN["xianding_quxiao"])
-                    return 1
             elif check_jq and self.is_exists(MAIN_BTN["speaker_box"], screen=sc, method="sq"):
                 for _ in range(5):
                     self.click(471, 5, post_delay=0.1)

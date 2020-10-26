@@ -1,5 +1,7 @@
 import asyncio
 import datetime
+import os
+import random
 import threading
 import time
 from typing import Optional, Union
@@ -79,7 +81,12 @@ class BaseMixin:
         if fast_screencut:
             self.lport: Optional[int] = None
             self.receive_minicap: Optional[ReceiveFromMinicap] = None
-
+    def save_last_screen(self,filename):
+        if self.last_screen is not None:
+            try:
+                cv2.imwrite(filename,self.last_screen)
+            except Exception as e:
+                self.log.write_log("error",f"保存最后一次截图失败：{e}")
     def do_nothing(self):
         # 啥事不干
         self.log.write_log("info", "Do nothing.")
@@ -109,7 +116,7 @@ class BaseMixin:
             else:
                 self.fastscreencut_retry = 3
                 if force_fast_screencut:
-                    raise Exception("快速截图打开失败！")
+                    raise FastScreencutException("快速截图打开失败！")
                 else:
                     print("Device:", self._d.serial, f"快速截图打开失败！使用慢速截图。")
 
@@ -124,7 +131,7 @@ class BaseMixin:
             self.d = SafeU2Handle(self._d)
             self.init_fastscreen()
 
-    def init_account(self, account, rec_addr):
+    def init_account(self, account, rec_addr="users"):
         self.account = account
         self.log = log_handler.pcr_log(account)  # 初始化日志
         self.AR = AutomatorRecorder(account, rec_addr)
@@ -245,9 +252,13 @@ class BaseMixin:
             img = img.img
         return img, at
 
-    def is_exists(self, img, threshold=0.84, at=None, screen=None, method=cv2.TM_CCOEFF_NORMED):
+    def is_exists(self, img, threshold=0.84, at=None, screen=None, is_black=False,
+                  black_threshold=1500, method=cv2.TM_CCOEFF_NORMED):
         """
         判断一个图片是否存在。
+        :param black_threshold: 判断暗点的阈值
+        :param is_black: 是否判断为暗色图片（多用于检测点击按钮后颜色变暗）灰色返回Ture,默认需要配合at，否则自行调整阈值
+        :param method:
         :param img:
             一个字符串，表示图片的地址；或者为PCRelement类型。
             当img为PCRelement时，如果at参数为None，则会使用img.at。
@@ -259,7 +270,7 @@ class BaseMixin:
         if screen is None:
             screen = self.getscreen()
         img, at = self._get_img_at(img, at)
-        return UIMatcher.img_where(screen, img, threshold, at, method) != False
+        return UIMatcher.img_where(screen, img, threshold, at, method, is_black, black_threshold) is not False
 
     def img_prob(self, img, at=None, screen=None, method=cv2.TM_CCOEFF_NORMED):
         """
@@ -466,15 +477,15 @@ class BaseMixin:
                         cv2.imwrite(filename, self.last_screen)
                     self.fastscreencut_retry = 0
                 except Exception as e:
-                    self.log.write_log("warning", f"快速截图出错 {e},采用低速截图")
-                    self.fastscreencut_retry += 1
-                    if self.fastscreencut_retry == 3:
-                        if force_fast_screencut:
-                            raise FastScreencutException(*e.args)
-                        else:
+                    if force_fast_screencut:
+                        raise FastScreencutException(*e.args)
+                    else:
+                        self.log.write_log("warning", f"快速截图出错 {e}， 使用低速截图")
+                        self.fastscreencut_retry += 1
+                        if self.fastscreencut_retry == 3:
                             self.log.write_log("error", f"快速截图连续出错3次，关闭快速截图。")
-                        self.receive_minicap.stop()
-                    self.last_screen = self.d.screenshot(filename, format="opencv")
+                            self.receive_minicap.stop()
+                        self.last_screen = self.d.screenshot(filename, format="opencv")
             else:
                 self.last_screen = self.d.screenshot(filename, format="opencv")
             self.last_screen_time = time.time()
@@ -559,6 +570,58 @@ class BaseMixin:
             else:
                 # print('未找到所需的按钮,无动作')
                 pass
+
+    def lock_fun(self, RTFun, *args, ifclick=None, ifbefore=0., ifdelay=1., elseclick=None,
+                 elsedelay=0.5, alldelay=0.5, retry=0, is_raise=False, timeout=None, elseafter=0., **kwargs):
+        """
+        任意方法锁定
+        @RTFun 锁定的函数
+            返回False，锁定失败
+            返回其它，锁定成功，返回值为函数返回值
+        """
+        if elseclick is None:
+            elseclick = []
+        if ifclick is None:
+            ifclick = []
+        if type(ifclick) is not list:
+            ifclick = [ifclick]
+        if type(elseclick) is not list:
+            elseclick = [elseclick]
+        attempt = 0
+        lasttime = time.time()
+        ec_time = 0  # else click time: 上次点elseclick的时间
+        if timeout is None:
+            timeout = lockimg_timeout
+        while True:
+            if self._move_check():
+                lasttime = time.time()
+                out = RTFun(*args, **kwargs)
+                if out:
+                    if ifclick != []:
+                        for clicks in ifclick:
+                            time.sleep(ifbefore)
+                            self.click(clicks[0], clicks[1], post_delay=elseafter)
+                            time.sleep(ifdelay)
+                    return out
+            if ec_time == 0:
+                # 第一次：必点
+                # 此后每次等待elsedelay
+                ec_time = time.time() - elsedelay
+            if time.time() - ec_time >= elsedelay:
+                if elseclick != []:
+                    for clicks in elseclick:
+                        self.click(clicks[0], clicks[1], post_delay=elseafter)
+                    attempt += 1
+                    ec_time = time.time()
+            time.sleep(alldelay)
+            if retry != 0 and attempt > retry:
+                return False
+            if timeout != 0 and time.time() - lasttime > timeout:
+                if is_raise:
+                    if disable_timeout_raise:
+                        continue
+                    raise Exception("lock_fun 超时！")
+                return False
 
     def _lock_img(self, img: Union[PCRelement, str, dict, list], ifclick=None, ifbefore=0., ifdelay=1., elseclick=None,
                   elsedelay=0.5, alldelay=0.5, retry=0, side_check=None,
@@ -697,6 +760,7 @@ class BaseMixin:
                   side_check=None):
         """
         稳定的点击按钮函数，合并了等待按钮出现与等待按钮消失的动作
+        :param side_check: 检测
         :param retry: 尝试次数,少用
         :param btn: PCRelement类型，要点击的按钮
         :param elsedelay: 尝试点击按钮后等待响应的间隔
@@ -761,7 +825,7 @@ class BaseMixin:
         count = 0  # 出现主页的次数
         while True:
             screen_shot_ = self.getscreen()
-            num_of_white, x, y = UIMatcher.find_gaoliang(screen_shot_)
+            num_of_white, _, x, y = UIMatcher.find_gaoliang(screen_shot_)
             if num_of_white < 77000:
                 try:
                     self.click(x * self.dWidth, y * self.dHeight + 20)
@@ -884,6 +948,59 @@ class BaseMixin:
                 raise Exception("点了10次，可可罗依然没有消失！")
             screen = self.getscreen()
         return flag
+
+    def phone_privacy(self):
+        """
+        2020/7/10
+        模拟器隐私函数
+        '高'匿名 防记录(
+        By：CyiceK
+        :return:
+        """
+
+        def luhn_residue(digits):
+            return sum(sum(divmod(int(d) * (1 + i % 2), 10))
+                       for i, d in enumerate(digits[::-1])) % 10
+
+        def _get_imei(n):
+            part = ''.join(str(random.randrange(0, 9)) for _ in range(n - 1))
+            res = luhn_residue('{}{}'.format(part, 0))
+            return '{}{}'.format(part, -res % 10)
+
+        # print("》》》匿名开始《《《", self.address)
+        tmp_rand = []
+        tmp_rand = random.sample(range(1, 10), 3)
+        phone_model = {
+            1: 'LIO-AN00',
+            2: 'TAS-AN00',
+            3: 'TAS-AL00',
+            4: 'AUSU-AT00',
+            5: 'AAA-SN00',
+            6: 'GMI1910',
+            7: 'G-OXLPix',
+            8: 'AM-1000',
+            9: 'G7',
+        }
+        phone_manufacturer = {
+            1: 'HUAWEI',
+            2: 'MEIZU',
+            3: 'XIAOMI',
+            4: 'OPPO',
+            5: 'VIVO',
+            6: 'MOTO',
+            7: 'GooglePix',
+            8: 'Redmi',
+            9: 'LG',
+        }
+        os.system('cd adb & adb -s %s shell setprop ro.product.model %s' % (self.address, phone_model[tmp_rand[0]]))
+        os.system(
+            'cd adb & adb -s %s shell setprop ro.product.manufacturer %s' % (self.address, phone_manufacturer[tmp_rand[1]]))
+        os.system('cd adb & adb -s %s shell setprop phone.imei %s' % (self.address, _get_imei(15)))
+        os.system('cd adb & adb -s %s shell setprop ro.product.name %s' % (self.address, phone_model[tmp_rand[2]]))
+        os.system('cd adb & adb -s %s shell setprop phone.imsi %s' % (self.address, _get_imei(15)))
+        os.system('cd adb & adb -s %s shell setprop phone.linenum %s' % (self.address, _get_imei(11)))
+        os.system('cd adb & adb -s %s shell setprop phone.simserial %s' % (self.address, _get_imei(20)))
+        # print("》》》匿名完毕《《《")
 
 class Multithreading(threading.Thread, BaseMixin):
     """

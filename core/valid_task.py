@@ -385,6 +385,7 @@ class TeamInputer(InputBoxBase):
                 return f"队号A-B中队伍B必须为1~3的整数，但{i}不满足要求"
         return ""
 
+
 class MeiRiHTuInputer(InputBoxBase):
     def create(self):
         print("输入A-B字符串，表示刷Hard A-B图。")
@@ -412,6 +413,7 @@ class MeiRiHTuInputer(InputBoxBase):
                 return str(e)
         return ""
 
+
 VALID_TASK = ValidTask() \
     .add("h1", "hanghui", "行会捐赠", "小号进行行会自动捐赠装备") \
     .add("h2", "tichuhanghui", "踢出行会", "将战力排名第一人踢出行会") \
@@ -436,16 +438,16 @@ VALID_TASK = ValidTask() \
                                               "如果两次捐赠小于8小时，且相差小于等待时间\n"
                                               "则程序进入什么都不做的等待，否则跳过。", 300)]) \
     .add("d1", "dixiacheng_ocr", "地下城(使用OCR)", "小号地下城借人换mana",
-         [TaskParam("assist_num", int, "支援位置选择", "选支援第一行的第n个（1-8），等级限制会自动选择第n+1个"),
-          TaskParam("skip", bool, "跳过战斗", "设置为True时，第一层不打直接撤退。\n设置为False时，打完第一层。"),
-          TaskParam("stuck_today", bool, "卡住地下城", "设置为True时，无论如何，进去地下城但是不打。\n设置为False时，为正常借人。"),
-          TaskParam("stuck_notzhandoukaishi", bool, "无法出击但不撤退", "设置为True时，如果发现无法出击，那就不撤退。\n设置为False时，则相反。"),]) \
+         [TaskParam("assist_num", int, "支援位置选择", "选支援第一行的第n个（1-8），等级限制会自动选择第n+1个", 1),
+          TaskParam("skip", bool, "跳过战斗", "设置为True时，第一层不打直接撤退。\n设置为False时，打完第一层。", False),
+          TaskParam("stuck_today", bool, "卡住地下城", "设置为True时，无论如何，进去地下城但是不打。\n设置为False时，为正常借人。", False),
+          TaskParam("stuck_notzhandoukaishi", bool, "无法出击但不撤退", "设置为True时，如果发现无法出击，那就不撤退。\n设置为False时，则相反。", False), ]) \
     .add("d2", "dixiacheng", "地下城", "小号地下城借人换mana",
-         [TaskParam("skip", bool, "跳过战斗", "设置为True时，第一层不打直接撤退。\n设置为False时，打完第一层。")]) \
+         [TaskParam("skip", bool, "跳过战斗", "设置为True时，第一层不打直接撤退。\n设置为False时，打完第一层。", False)]) \
     .add("d3", "dixiachengYunhai", "打云海关", "打通云海关【细节待补充】") \
     .add("d4", "dixiachengDuanya", "打断崖关", "打通断崖关【细节待补充】") \
     .add("d5", "shuatuDD", "通关地下城", "通用的打通地下城函数",
-         [TaskParam("dxc_id", int, "地下城图号", "刷哪个地下城。\n目前支持:3"),
+         [TaskParam("dxc_id", int, "地下城图号", "刷哪个地下城。\n目前支持:3,4"),
           TaskParam("mode", int, "模式", "mode 0：不打Boss，用队伍1只打小关\n"
                                        "mode 1：打Boss，用队伍1打小关，用队伍[1,2,3,4,5...]打Boss\n"
                                        "mode 2：打Boss，用队伍1打小关，用队伍[2,3,4,5...]打Boss"),
@@ -461,10 +463,12 @@ VALID_TASK = ValidTask() \
                                            "按照列表顺序分别表示编队1号，2号，3号……\n"
                                            "每一个元素为一个字符串\n"
                                            "若为\"zhanli\"，则按照战力排序，选择前五战力为当前队伍\n"
-                                           "若为\“a-b\",其中a为1~5的整数，b为1~3的整数，则选择编组a队伍b", inputbox=TeamInputer())]) \
+                                           "若为\“a-b\",其中a为1~5的整数，b为1~3的整数，则选择编组a队伍b", inputbox=TeamInputer()),
+          TaskParam("safety_stop", int, "安全保护", "防止大号误撤退。\n设置为0时，不管；\n设置为1时，若小关伤亡惨重，直接返回主页不撤退。", 1)]) \
     .add("j1", "doJJC", "竞技场", "竞技场白给脚本") \
     .add("j2", "doPJJC", "公主竞技场", "公主竞技场白给脚本") \
-    .add('r1', "gonghuizhijia", "家园领取", "收取公会之家的奖励") \
+    .add('r1', "gonghuizhijia", "家园领取", "收取公会之家的奖励",
+         [TaskParam("auto_update", bool, "自动升级家具", "自动升级家具，家具的位置为游戏默认位置", False), ]) \
     .add("r2", "mianfeiniudan", "免费扭蛋", "抽取免费扭蛋") \
     .add("r3", "mianfeishilian", "免费10连", "抽取免费十连（如果有的话）") \
     .add("r4", "shouqu", "收取礼物", "收取全部礼物") \
@@ -499,15 +503,14 @@ VALID_TASK = ValidTask() \
     .add("t3", "get_base_info", "OCR获取账号信息", "识别会单独消耗时间，大约几分钟\n利用OCR获取等级/名字/行会名/mana/宝石/战力/"
                                              "扫荡券，并输出成xls表格到xls文件夹\n注意：请不要在生成表格的期间打开表格！",
          [TaskParam("acc_nature", int, "XLS输出格式", "0：小号、农场号\n1：大号"),
-          TaskParam("base_info", bool, "账号基础信息", "是否获取账号基本信息（等级/mana/宝石）【True/False】"),
-          TaskParam("introduction_info", bool, "简介基础信息", "是否获取账号简介基本信息（等级/全角色战力/所属行会/玩家ID）"
-                                                         "【True/False】"),
-          TaskParam("props_info", bool, "道具基础信息", "是否获取账号道具基本信息（扫荡券）【True/False】"),
-          TaskParam("out_xls", bool, "\033[0;41;47m 是否输出为表格 \033[0m", "是否获取账号道具基本信息（扫荡券）"
-                                                                      "【True/False】"),
-          TaskParam("s_sent", bool, "\033[0;44;47m 是否用Server酱发送（暂无） \033[0m", "每个账号识别结果会直接一个个"
-                                                                              "推送到你手机上【True/False】"),
+          TaskParam("base_info", bool, "账号基础信息", "是否获取账号基本信息（等级/mana/宝石）"),
+          TaskParam("introduction_info", bool, "简介基础信息", "是否获取账号简介基本信息（等级/全角色战力/所属行会/玩家ID）"),
+          TaskParam("props_info", bool, "道具基础信息", "是否获取账号道具基本信息（扫荡券）"),
+          TaskParam("out_xls", bool, "是否输出为表格", "是否获取账号道具基本信息（扫荡券）"),
+          TaskParam("s_sent", bool, "是否用Server酱发送（暂无）", "每个账号识别结果会直接一个个推送到你手机上"),
           ]) \
+    .add("t4", "maizhuangbei", "小号卖装备", "卖出数量前三的装备（如果数量大于1000，无需OCR）",
+         [TaskParam("day_interval", int, "清理间隔", "请输入清理间隔天数", 30)]) \
     .add("s1", "shuajingyan", "刷经验1-1", "刷图1-1，经验获取效率最大。",
          [TaskParam("map", int, "主图", "如果你的号最远推到A-B,则主图为A。")]) \
     .add("s1-3", "shuajingyan3", "刷经验3-1", "刷图3-1，比较节省刷图卷。",
@@ -557,8 +560,8 @@ VALID_TASK = ValidTask() \
     .add("s7-a", "xiaohaoHtu", "每日H图全刷", "从H1-1开始一直往后刷直到没法刷为止。",
          [TaskParam("daily_tili", int, "每日体力", "每天最多用于每日H图的体力，该记录每日清零。", 0),
           TaskParam("do_tuitu", bool, "是否推图", "若关卡能挑战但未三星，是否允许手刷推图。", False)]) \
-    .add("nothing", "do_nothing", "啥事不干", "啥事不干，调试用")\
-    .add("s8","shengjijuese","自动升级","此功能为自动升级角色功能",
-         [TaskParam("buy_tili", int, "体力次数","如果要通过刷图来获取装备，最多买体力次数"),
-          TaskParam("do_rank",bool,"是否升rank","是否自动升rank"),
-          TaskParam("do_shuatu",bool,"是否刷图","是否在装备可以获得但不够时，通过刷图来获取装备")])
+    .add("nothing", "do_nothing", "啥事不干", "啥事不干，调试用") \
+    .add("s8", "shengjijuese", "自动升级", "此功能为自动升级角色功能",
+         [TaskParam("buy_tili", int, "体力次数", "如果要通过刷图来获取装备，最多买体力次数"),
+          TaskParam("do_rank", bool, "是否升rank", "是否自动升rank"),
+          TaskParam("do_shuatu", bool, "是否刷图", "是否在装备可以获得但不够时，通过刷图来获取装备")])

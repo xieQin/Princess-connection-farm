@@ -12,17 +12,24 @@ from typing import List, Tuple, Optional, Dict, Union
 import adbutils
 import keyboard
 
-from automator_mixins._base import Multithreading, ForceKillException
+from automator_mixins._base import Multithreading, ForceKillException, FastScreencutException
 from core.Automator import Automator
 from core.constant import USER_DEFAULT_DICT as UDD
 from core.emulator_port import *
 from core.launcher import LauncherBase, LDLauncher
 from core.pcr_config import enable_auto_find_emulator, emulator_ports, selected_emulator, max_reboot, \
     trace_exception_for_debug, s_sckey, s_sentstate, emulator_console, emulator_id, quit_emulator_when_free, \
-    max_free_time, adb_dir
-from core.safe_u2 import OfflineException
+    max_free_time, adb_dir, add_adb_to_path
+from core.safe_u2 import OfflineException, ReadTimeoutException
 from core.usercentre import AutomatorRecorder, parse_batch
 from core.utils import diffday, PrintToStr
+
+abs_dir = os.path.abspath(adb_dir)
+if add_adb_to_path:
+    # print("添加到环境变量：", abs_dir)
+    env = os.getenv("path")
+    env = abs_dir + ";" + env
+    os.putenv("path", env)
 
 
 def _connect():  # 连接adb与uiautomator
@@ -346,6 +353,8 @@ class AllDevices:
                       time_period_format(tm - j.time_busy), end="")
                 if j.cur_acc != "":
                     print(" 当前任务：账号", j.cur_acc, AutomatorRecorder.get_user_state(j.cur_acc, j.cur_rec), end="")
+                if j.emulator_launcher is not None:
+                    print(" [自动控制中]", end="")
                 print()
 
 
@@ -495,10 +504,15 @@ class PCRInitializer:
             if out:
                 a.change_acc()
             return out
+        except FastScreencutException as e:
+            raise e
         except ForceKillException as e:
             raise e
         except OfflineException as e:
             pcr_log(account).write_log('error', message=f'initialize-检测到设备离线：{e}')
+            return False
+        except ReadTimeoutException as e:
+            pcr_log(account).write_log('error', message=f'initialize-检测到连接超时：{e}')
             return False
         except Exception as e:
             pcr_log(account).write_log('error', message=f'initialize-检测出异常：{type(e)} {e}')
@@ -609,6 +623,26 @@ class PCRInitializer:
                     else:
                         out_queue.put({"device": {"serial": serial, "method": "stop"}})
                         break
+                except FastScreencutException:
+                    # 快速截图错误，尝试重启
+                    if device.with_emulator():
+                        out_queue.put({"device_status": {"serial": serial, "status": "restart"}})
+                        out_queue.put({"device": {"serial": serial, "method": "offline"}})
+                        device.restart_emulator(True)
+                        # 尝试重启模拟器
+                        if device.wait_for_healthy():
+                            out_queue.put({"device_status": {"serial": serial, "status": "restart_success"}})
+                            device.start_u2()
+                            continue  # 重启成功
+                        else:
+                            out_queue.put({"device_status": {"serial": serial, "status": "restart_fail"}})
+                    # 任务失败，模拟器断开
+                    out_queue.put({"device": {"serial": serial, "method": "offline"}})
+                    out_queue.put({"task": {"status": "retry", "task": _task, "device": serial}})
+                    if device.with_emulator():
+                        device.quit_emulator()
+                    flag["exit"] = True
+                    break
                 except ForceKillException:
                     # 强制退出
                     out_queue.put({"task": {"status": "forcekill", "task": _task, "device": serial}})
@@ -739,7 +773,7 @@ class PCRInitializer:
         q = self.tasks.get_attribute("queue")
         L = []
         for ind, T in enumerate(q):
-            if type(T) is not tuple or len(T) is not 6:
+            if type(T) is not tuple or len(T) != 6:
                 print("DEBUG: ", T)
                 break
             (_, acc, taskname, rec, _, _) = T
@@ -810,6 +844,8 @@ class Schedule:
         for s in self.schedule["schedules"]:
             if s["type"] == "config":
                 self.config.update(s)
+                continue
+            if "__disable__" in s and s["__disable__"]:
                 continue
             typ = s["type"]
             nam = s["name"]
@@ -1109,6 +1145,8 @@ class Schedule:
                     self.run_status[rec] = 1
                     self.log("info", f"计划** {nam} - {bat} **已经完成")
                     self._set_status()
+                    self.checked_status[rec] = True
+                    continue
                 # 已经处理过
                 if self.checked_status[rec] is True:
                     continue

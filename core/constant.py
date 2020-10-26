@@ -122,6 +122,9 @@ MAIN_BTN = {
     # 右侧的kkr
     "right_kkr": p(img="img/home/right_kkr.bmp", at=(27, 88, 922, 414)),
 
+    "xzcw": p(img="img/home/xzcw.bmp", at=(438, 135, 520, 157)),  # 下载错误
+
+
 }
 JJC_BTN = {
     "list": p(img="img/jjc/list.bmp", at=(829, 80, 926, 101)),  # 列表更新
@@ -158,8 +161,21 @@ RENWU_BTN = {
     "guanbi": p(img="img/ui/close_btn_1.bmp", at=(374, 455, 580, 503)),
 }
 JIAYUAN_BTN = {
+    "jiaju": {
+        "saodangquan": p(213, 243),
+        "jingyan": p(311, 272),
+        "mana": p(265, 219),
+        "tili": p(264, 294),
+    },
+    "quxiao": p(img="img/jiayuan/quxiao.bmp"),
     "quanbushouqu": p(900, 424, img="img/jiayuan/quanbushouqu.bmp", at=(872, 395, 926, 454)),
     "guanbi": p(477, 479, img="img/ui/close_btn_1.bmp", at=(374, 455, 580, 503)),
+    "jiayuan_shengjiok": p(img="img/jiayuan/jiayuan_shengji.bmp"),
+    "jy_dengjitisheng": p(520, 473, img="img/jiayuan/jy_dengjitisheng.bmp", at=(493, 450, 547, 504)),
+    "jy_dengjitisheng2": p(img="img/jiayuan/jy_dengjitisheng2.bmp", at=(488, 445, 552, 506)),
+    "dengjitisheng": p(589, 431, img="img/jiayuan/dengjitisheng.bmp", at=(491, 410, 682, 452)),
+    "xinxi": p(img="img/jiayuan/xinxi.bmp"),
+    "zhuye": p(img="img/jiayuan/wodezhuye.bmp", at=(47, 488, 130, 537)),
 }
 
 NIUDAN_BTN = {
@@ -171,8 +187,10 @@ NIUDAN_BTN = {
     "putong_ok": p(591, 360, img="img/ui/ok_btn_1.bmp", at=(493, 347, 688, 387)),
     "niudanjieguo_ok": p(481, 443, img="img/ui/ok_btn_2.bmp", at=(383, 423, 597, 462)),
     "putong_wancheng": p(img="img/niudan/putong_wancheng.bmp", at=(610, 320, 750, 450)),
-
+    "niudan_shilian": p(872, 355),
+    "mianfeishilian": p(img='img/niudan/mianfeishilian.bmp', at=(819, 300, 919, 319))
 }
+
 HANGHUI_BTN = {
     "juanzengqingqiu": p(367, 39),
     "juanzeng": p(644, 385),
@@ -270,10 +288,18 @@ HANGHUI_BTN = {
 ZHUCAIDAN_BTN = {
     "bangzhu": p(img="img/zhucaidan/bangzhu.bmp", at=(493, 247, 695, 290)),
     "jianjie": p(img="img/zhucaidan/jianjie.bmp", at=(267, 241, 499, 290)),
-    "daoju": p(img="img/zhucaidan/daoju.bmp", at=(475, 112, 610, 187)),
+    "daoju": p(475, 160, img="img/zhucaidan/daoju.bmp", at=(475, 112, 610, 187)),
     "saodangquan": p(img="img/zhucaidan/saodangquan.bmp"),
     "jianjie_L": p(img="img/zhucaidan/jianjie_L.bmp", at=(59, 1, 137, 48)),
     "daojuyilan": p(img="img/zhucaidan/daojuyilan.bmp", at=(57, 3, 172, 51)),
+    "chushou": p(843, 428, img="img/zhucaidan/chushou.bmp", at=(786, 410, 901, 441)),
+    "chiyoushu": p(705, 31, img="img/zhucaidan/chiyoushu.bmp", at=(680, 20, 730, 40)),
+    "zhuangbei": p(460, 33),
+    "jiangxu": p(865, 31, img="img/zhucaidan/jiangxu.bmp", at=(849, 22, 881, 41)),
+    "chushouqueren": p(img="img/zhucaidan/chushouqueren.bmp", at=(434, 30, 521, 53)),
+    "chushouwanbi": p(img="img/zhucaidan/chushouwanbi.bmp", at=(434, 133, 522, 154)),
+    "chushou2": p(584, 483)
+
 }
 FIGHT_BTN = {
     "auto_on": p(914, 420, img="img/fight/auto_on.bmp", at=(895, 404, 925, 441)),
@@ -426,6 +452,7 @@ DXC_ELEMENT = {
     "zhandoukaishi": p(833, 470, img="img/dxc/zhandoukaishi.bmp", at=(761, 430, 912, 471)),
     "zhiyuan_white": p(477, 86, img="img/dxc/zhiyuan_white.bmp", at=(433, 75, 524, 99)),
     "zhiyuan_blue": p(477, 86, img="img/dxc/zhiyuan_blue.bmp", at=(430, 73, 521, 104)),
+    "ok_btn_1": p(588, 371, img="img/ui/ok_btn_1.bmp"),
 }
 DXC_NUM = {
     # 没有OCR用此来检测层数
@@ -440,6 +467,13 @@ DXC_NUM = {
         8: p(img="img/dxc/dxc3/8.bmp", at=(193, 423, 218, 441)),
         9: p(img="img/dxc/dxc3/9.bmp", at=(193, 424, 220, 440)),
         10: p(img="img/dxc/dxc3/10.bmp", at=(189, 424, 218, 441)),
+    },
+    4: {
+        1:p(img="img/dxc/dxc4/1.bmp",at=(207,422,227,441)),
+        2:p(img="img/dxc/dxc4/2.bmp",at=(206,424,224,439)),
+        3:p(img="img/dxc/dxc4/3.bmp",at=(206,424,225,439)),
+        4:p(img="img/dxc/dxc4/4.bmp",at=(206,424,225,438)),
+        5:p(img="img/dxc/dxc4/5.bmp",at=(201,426,226,439)),
     }
 }
 DXC_ENTRANCE = {
@@ -462,9 +496,16 @@ DXC_COORD = {
         8: p(456, 214),
         9: p(234, 230),
         10: p(629, 195),
+    },
+    4: {
+        1: p(694, 295),
+        2: p(614, 278),
+        3: p(325, 283),
+        4: p(681, 285),
+        5: p(297, 190)
     }
 }
-MAX_MAP = 13
+MAX_MAP = 15
 HARD_COORD = {
     1: {
         1: p(250, 340),
@@ -530,6 +571,16 @@ HARD_COORD = {
         1: p(222, 245),
         2: p(485, 348),
         3: p(765, 342),
+    },
+    14: {
+        1: p(214, 346),
+        2: p(480, 249),
+        3: p(767, 333),
+    },
+    15: {
+        1: p(210, 224),
+        2: p(477, 365),
+        3: p(765, 278),
     }
 }
 
@@ -574,6 +625,12 @@ MAOXIAN_BTN = {
     "sdqqr": p(img="img/maoxian/sdqqr.bmp", at=(429, 129, 527, 154)),  # 扫荡券确认
     "jsjsqr": p(img="img/maoxian/jsqsqr.bmp", at=(415, 31, 550, 52)),  # 角色解锁确认
 
+    "saodang_query": p(img="img/maoxian/saodang_query.bmp", at=(401, 206, 557, 240)),  # 扫荡券确认提示语
+    "query_box": p(at=(263, 193, 698, 315)),  # 弹出提示框的位置
+    "saodang_jieguo": p(img="img/maoxian/saodang_jieguo.bmp", at=(435, 28, 521, 56)),  # 扫荡结果：扫荡跳过界面上面的标题:
+    "duiwu_win": p(img="img/maoxian/duiwu_win.bmp", at=(897, 77, 922, 105)),  # Normal/Hard胜利时，“队伍”图标偏下
+    "duiwu_loss": p(img="img/maoxian/duiwu_loss.bmp", at=(895, 23, 924, 49)),  # Normal/Hard失败时，“队伍”图标偏上
+
 }
 ZHUXIAN_ID = {
     1: p(img="img/zhuxian/1.bmp", at=(453, 74, 516, 88)),
@@ -589,6 +646,8 @@ ZHUXIAN_ID = {
     11: p(img="img/zhuxian/11.bmp", at=(449, 73, 523, 88)),
     12: p(img="img/zhuxian/12.bmp", at=(442, 74, 507, 88)),
     13: p(img="img/zhuxian/13.bmp", at=(443, 75, 538, 86)),
+    14: p(img="img/zhuxian/14.bmp", at=(442, 74, 541, 88)),
+    15: p(img="img/zhuxian/15.bmp", at=(450, 74, 536, 90)),
 }
 
 NORMAL_COORD = {
@@ -727,6 +786,7 @@ NORMAL_COORD = {
     },
     8: {
         "right": {
+            15: p(442, 222, name="8-15"),
             14: p(584, 260, name="8-14"),
             13: p(715, 319, name="8-13"),
             12: p(605, 398, name="8-12"),
@@ -857,7 +917,47 @@ NORMAL_COORD = {
             2: p(238, 185),
             1: p(109, 206),
         }
-    }
+    },
+    14: {
+        "right": {
+            14: p(787, 239),
+            13: p(679, 300),
+            12: p(674, 411),
+            11: p(543, 369),
+            10: p(404, 388),
+            9: p(457, 268),
+            8: p(327, 286),
+            7: p(213, 317),
+        },
+        "left": {
+            6: p(582, 369),
+            5: p(489, 294),
+            4: p(397, 390),
+            3: p(298, 302),
+            2: p(188, 394),
+            1: p(128, 267),
+        }
+    },
+    15: {
+        "right": {
+            14: p(592, 253),
+            13: p(745, 311),
+            12: p(648, 404),
+            11: p(500, 405),
+            10: p(348, 370),
+            9: p(289, 249),
+            8: p(191, 354),
+        },
+        "left": {
+            7: p(553, 407),
+            6: p(600, 248),
+            5: p(464, 280),
+            4: p(376, 404),
+            3: p(256, 337),
+            2: p(267, 199),
+            1: p(124, 229),
+        }
+    },
 
 }
 
@@ -883,6 +983,7 @@ USER_DEFAULT_DICT = {
         "buyexp": 0,  # 上次购买经验时间
         "niudan": 0,  # 上次免费扭蛋时间
         "tansuo": 0,  # 上次探索时间
+        "maizhuangbei": 0,  # 上次卖装备时间
     }
     ,
     "daily_status": {

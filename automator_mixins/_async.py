@@ -6,10 +6,12 @@ import psutil
 from core.cv import UIMatcher
 from core.log_handler import pcr_log
 from core.pcr_config import bad_connecting_time, async_screenshot_freq, fast_screencut, enable_pause
+from core.safe_u2 import timeout
 from ._base import Multithreading
 from ._tools import ToolsMixin
 
 block_sw = 0
+async_block_sw = 0
 
 
 class AsyncMixin(ToolsMixin):
@@ -38,7 +40,8 @@ class AsyncMixin(ToolsMixin):
                                   retry=15)  # 菜单
                     self.lock_img('img/juqing/tiaoguo_1.bmp', ifclick=[(807, 44)], ifdelay=self.change_time,
                                   retry=15)  # 跳过
-                    self.lock_img('img/juqing/tiaoguo_2.bmp', ifclick=[(589, 367)], ifdelay=self.change_time, retry=15)  # 跳过
+                    self.lock_img('img/juqing/tiaoguo_2.bmp', ifclick=[(589, 367)], ifdelay=self.change_time,
+                                  retry=15)  # 跳过
                     cumulative_time = 0.1
                 elif self.is_exists(screen=screenshot, img='img/kekeluo.bmp', at=(181, 388, 384, 451)):
                     # 防妈骑脸
@@ -53,7 +56,8 @@ class AsyncMixin(ToolsMixin):
                     self.click(480, 505, pre_delay=0.5, post_delay=self.change_time)
                     cumulative_time = 0.1
                     if self.is_exists('img/dixiacheng.jpg', at=(837, 92, 915, 140)):
-                        self.lock_no_img('img/dixiacheng.jpg', elseclick=(900, 138), elsedelay=self.change_time, retry=10)
+                        self.lock_no_img('img/dixiacheng.jpg', elseclick=(900, 138), elsedelay=self.change_time,
+                                         retry=10)
                         raise Exception("地下城吃塔币跳过完成，重启")
                 elif cumulative_time < 20:
                     cumulative_time = cumulative_time + 1
@@ -73,6 +77,8 @@ class AsyncMixin(ToolsMixin):
             try:
                 screenshot = self.last_screen
                 if screenshot is None:
+                    continue
+                if time.time() - self.last_screen_time > async_screenshot_freq:
                     continue
                 time_start = time.time()
                 if self.is_exists(screen=screenshot, img='img/connecting.bmp', at=(748, 20, 931, 53)):
@@ -204,6 +210,7 @@ class AsyncMixin(ToolsMixin):
         """
         # 2020-8-26 播报系统移动至core.initializer._run
         pass
+
     async def aor_purse(self):
         """
         脚本暂停函数
@@ -211,11 +218,12 @@ class AsyncMixin(ToolsMixin):
         测试
         :return:
         """
-        global block_sw
+        global block_sw, async_block_sw
         if not enable_pause:
             return
         # print(Multithreading({}).is_stopped())
         while Multithreading({}).is_stopped():
+            async_block_sw = 1
             keyboard.wait('shift+p')
             block_sw = 1
             print("下一步，脚本暂停,按shift+p恢复")
@@ -224,6 +232,7 @@ class AsyncMixin(ToolsMixin):
             block_sw = 0
             print("恢复运行")
             time.sleep(0.8)
+        async_block_sw = 0
 
     def start_th(self):
         Multithreading({}).resume()
@@ -242,7 +251,8 @@ class AsyncMixin(ToolsMixin):
         # self.c_async(self, account, self.juqingtiaoguo(), sync=False)  # 异步剧情跳过
         self.c_async(self, account, self.bad_connecting(), sync=False)  # 异步异常处理
         # self.c_async(self, account, self.same_img(), sync=False)  # 异步卡死判断
-        self.c_async(self, account, self.aor_purse(), sync=False)  # 异步暂停判断
+        if not async_block_sw:
+            self.c_async(self, account, self.aor_purse(), sync=False)  # 异步暂停判断
         self.c_async(self, account, self.auto_time_sleep(), sync=False)  # 异步根据CPU负载调控time sleep
 
     def program_start_async(self):
@@ -251,13 +261,18 @@ class AsyncMixin(ToolsMixin):
         # self.c_async(self, account, self.Report_Information(), sync=False)  # 异步Server酱播报系统
         pass
 
-    def fix_reboot(self, back_home=True):
+    @timeout(180, "重启超时，三分钟仍然未响应")
+    def _fix_reboot(self, back_home):
         # 重启逻辑：重启应用，重启异步线程
         self.stop_th()
         self.d.session("com.bilibili.priconne")
         time.sleep(8)
         self.d.app_wait("com.bilibili.priconne")
         self.start_th()
-        self.receive_minicap.start()
+        self.init_fastscreen()
+        self.start_async()
         if back_home:
             self.lock_home()
+
+    def fix_reboot(self, back_home=True):
+        self._fix_reboot(back_home)

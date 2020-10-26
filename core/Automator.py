@@ -17,8 +17,8 @@ from automator_mixins._tools import ToolsMixin
 from core.MoveRecord import moveset, UnknownMovesetException
 from core.log_handler import pcr_log
 # 2020.7.19 如果要记录日志 采用如下格式 self.pcr_log.write_log(level='info','<your message>') 下同
-from core.pcr_config import trace_exception_for_debug
-from core.safe_u2 import OfflineException
+from core.pcr_config import trace_exception_for_debug, captcha_skip
+from core.safe_u2 import OfflineException, ReadTimeoutException
 from core.usercentre import check_task_dict
 from core.valid_task import VALID_TASK
 
@@ -67,16 +67,21 @@ class Automator(HanghuiMixin, LoginMixin, RoutineMixin, ShuatuMixin, JJCMixin, D
                     flag = True
                 if flag:
                     self.__getattribute__(funname)(**kwargs)
+
             return fun
 
         self.log.write_log("info", f"任务列表：")
         # 解析任务列表
         for task in tasks["tasks"]:
+            if "__disable__" in task and task["__disable__"]:
+                continue
             typ = task["type"]
             cur = VALID_TASK.T[typ]
             kwargs = {}
             for param in task:
                 if param == "type":
+                    continue
+                if param == "__disable__":
                     continue
                 kwargs[param] = task[param]
             for v_p in cur["params"]:  # Valid Param: Default Param
@@ -96,7 +101,13 @@ class Automator(HanghuiMixin, LoginMixin, RoutineMixin, ShuatuMixin, JJCMixin, D
             try:
                 if before_:
                     self.task_current("登录")
-                    self.login_auth(account, password)
+                    _return_code = self.login_auth(account, password)
+                    if _return_code == -1:
+                        # 标记错误！
+                        self.task_error(str('%s账号出现了验证码' % self.account))
+                        if captcha_skip:
+                            self.fix_reboot(False)
+                            return False
                     if continue_ is False:
                         # 初次执行，记录一下
                         self.task_start()
@@ -120,16 +131,20 @@ class Automator(HanghuiMixin, LoginMixin, RoutineMixin, ShuatuMixin, JJCMixin, D
                 raise e
             except FastScreencutException as e:
                 pcr_log(account).write_log(level='error', message=f'快速截图出现错误，{e},尝试重新连接……')
+                self.fix_reboot(not before_)
                 self.init_fastscreen()
             except OfflineException as e:
                 pcr_log(account).write_log('error', message=f'main-检测到设备离线：{e}')
                 return False
+            except ReadTimeoutException as e:
+                pcr_log(account).write_log('error', message=f'main-检测到连接超时，{e}，尝试重新连接……')
+                self.init_device(self.address)
             except Exception as e:
                 retry += 1
                 try:
                     os.makedirs(f"error_screenshot/{account}", exist_ok=True)
                     nowtime = datetime.datetime.strftime(datetime.datetime.now(), "%Y%m%d_%H%M%S")
-                    target = f"error_screenshot/{account}/{nowtime}_RT{retry + 1}.bmp"
+                    target = f"error_screenshot/{account}/{nowtime}_RT{retry}.bmp"
                     cv2.imwrite(target, self.last_screen)
                     pcr_log(account).write_log(level="error", message=f"错误截图已经保存至{target}")
                 except Exception as es:
@@ -145,10 +160,10 @@ class Automator(HanghuiMixin, LoginMixin, RoutineMixin, ShuatuMixin, JJCMixin, D
                     self.task_error(str(last_exception))
                     self.fix_reboot(False)
                     return False
-                pcr_log(account).write_log(level='error', message=f'main-检测出异常{e}，重启中 次数{retry + 1}/{max_retry}')
+                pcr_log(account).write_log(level='error', message=f'main-检测出异常{e}，重启中 次数{retry}/{max_retry}')
 
                 try:
-                    self.fix_reboot(before_)
+                    self.fix_reboot(not before_)
                 except Exception as e:
                     pcr_log(account).write_log(level='error', message=f'main-自动重启失败，跳过账号!{e}')
                     self.task_error(str(last_exception))
@@ -157,7 +172,6 @@ class Automator(HanghuiMixin, LoginMixin, RoutineMixin, ShuatuMixin, JJCMixin, D
                     except:
                         pass
                     return False
-
 
 
 if __name__ == "__main__":

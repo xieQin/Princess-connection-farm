@@ -11,10 +11,12 @@ import xlrd
 from xlutils.copy import copy
 
 from core.constant import MAIN_BTN, PCRelement, ZHUCAIDAN_BTN
+from core.constant import USER_DEFAULT_DICT as UDD
 from core.cv import UIMatcher
 from core.log_handler import pcr_log
 from core.pcr_config import baidu_secretKey, baidu_apiKey, baidu_ocr_img, anticlockwise_rotation_times, lockimg_timeout, \
-    ocr_mode
+    ocr_mode, debug
+from core.safe_u2 import timeout
 from ._base import BaseMixin
 
 
@@ -25,6 +27,7 @@ class ToolsMixin(BaseMixin):
     还有很多常用函数，比如回首页
     """
 
+    @timeout(300, "lock_home执行超时：超过5分钟")
     def lock_home(self):
         """
         锁定首页
@@ -34,17 +37,20 @@ class ToolsMixin(BaseMixin):
         last = time.time()
         while True:
             sc = self.getscreen()
-            num_of_white, x, y = UIMatcher.find_gaoliang(sc)
+            num_of_white, _, x, y = UIMatcher.find_gaoliang(sc)
             if num_of_white < 77000:
                 self.chulijiaocheng(None)  # 增加对教程的处理功能
                 last = time.time()
             if self.is_exists(MAIN_BTN["liwu"], screen=sc):
                 return
             self.click(MAIN_BTN["zhuye"])
+            # 防卡公告
+            self.click(1, 1)
             time.sleep(1.5)
             if time.time() - last > lockimg_timeout:
                 raise Exception("lock_home时出错：超时！")
 
+    @timeout(300, "init_home执行超时：超过5分钟")
     def init_home(self):
         # 2020-07-31 TheAutumnOfRice: 检查完毕
         while True:
@@ -54,11 +60,13 @@ class ToolsMixin(BaseMixin):
             if self.is_exists(MAIN_BTN["tiaoguo"], screen=screen_shot_):
                 self.click(893, 39, post_delay=0.5)  # 跳过
                 continue
+            if self.is_exists(MAIN_BTN["xzcw"], screen=screen_shot_):
+                raise Exception("下载错误")
             if self.is_exists(MAIN_BTN["jingsaikaishi"], screen=screen_shot_):
                 self.click(786, 308, post_delay=0.2)  # 选角色
                 self.click(842, 491)  # 开始
                 continue
-            num_of_white, x, y = UIMatcher.find_gaoliang(screen_shot_)
+            num_of_white, _, x, y = UIMatcher.find_gaoliang(screen_shot_)
             if num_of_white < 77000:
                 break
 
@@ -70,7 +78,7 @@ class ToolsMixin(BaseMixin):
         time.sleep(0.5)
         # 这里防一波第二天可可萝跳脸教程
         screen_shot_ = self.getscreen()
-        num_of_white, _, _ = UIMatcher.find_gaoliang(screen_shot_)
+        num_of_white, _, _, _ = UIMatcher.find_gaoliang(screen_shot_)
         if num_of_white < 50000:
             self.lock_img('img/renwu_1.bmp', elseclick=[(837, 433)], elsedelay=1)
             self.lock_home()
@@ -96,6 +104,54 @@ class ToolsMixin(BaseMixin):
         self.click(95, 516)
         self.lock_home()
 
+    def maizhuangbei(self, day_interval):
+        """
+        卖掉数量前三的装备，（如果超过1000）
+        适合小号
+        :param day_interval: 日期间隔：每过day_interval天进行一次卖出
+        """
+
+        def get_last_record():
+            ts = self.AR.get("time_status", UDD["time_status"])
+            return ts["maizhuangbei"]
+
+        def set_last_record():
+            ts = self.AR.get("time_status", UDD["time_status"])
+            ts["maizhuangbei"] = time.time()
+            self.AR.set("time_status", ts)
+
+        tm = get_last_record()
+        diff = time.time() - tm
+        if diff < day_interval * 3600 * 24:
+            self.log.write_log("info", f"离下次卖装备还有{day_interval - int(diff / 3600 / 24)}天，跳过。")
+            return
+        self.lock_home()
+        self.lock_img(ZHUCAIDAN_BTN["bangzhu"], elseclick=[(871, 513)])  # 锁定帮助
+        self.click_btn(ZHUCAIDAN_BTN["daoju"], until_appear=ZHUCAIDAN_BTN["daojuyilan"])
+        self.click_btn(ZHUCAIDAN_BTN["zhuangbei"], until_appear=ZHUCAIDAN_BTN["chushou"])
+        if not self.is_exists(ZHUCAIDAN_BTN["chiyoushu"]):
+            self.click(723, 32, post_delay=3)
+            self.click(285, 228, post_delay=1)
+            self.click(587, 377, post_delay=3)
+        self.click_btn(ZHUCAIDAN_BTN["jiangxu"], until_appear=ZHUCAIDAN_BTN["jiangxu"])
+        for _ in range(3):
+            self.click_btn(ZHUCAIDAN_BTN["chushou"], until_appear=ZHUCAIDAN_BTN["chushouqueren"])
+            self.click(645, 315, post_delay=2)  # max
+            th_at = (518, 267, 530, 282)  # 千位
+            img = self.getscreen()
+            cut_img = UIMatcher.img_cut(img, th_at)
+            if debug:
+                print("VAR:", cut_img.var())
+            if cut_img.var() > 1000:
+                # 有千位，卖
+                self.click_btn(ZHUCAIDAN_BTN["chushou2"], until_appear=ZHUCAIDAN_BTN["chushouwanbi"])
+                for _ in range(5):
+                    self.click(1, 1)
+            else:
+                break
+        set_last_record()
+        self.lock_home()
+
     def ocr_center(self, x1, y1, x2, y2, screen_shot=None, size=1.0):
         """
         :param size: 放大的大小
@@ -107,6 +163,13 @@ class ToolsMixin(BaseMixin):
         :return:
         """
         global ocr_text
+
+        try:
+            requests.get(url="http://127.0.0.1:5000/ocr/")
+        except:
+            pcr_log(self.account).write_log(level='error', message='无法连接到OCR,请尝试重新开启app.py')
+            return -1
+
         if len(ocr_mode) == 0:
             return -1
         # OCR识别任务分配
@@ -115,6 +178,8 @@ class ToolsMixin(BaseMixin):
             code = baidu_ocr_ping.status_code
             if code == 200:
                 ocr_text = self.baidu_ocr(x1, y1, x2, y2, screen_shot=screen_shot, size=size)
+                if ocr_text == -1:
+                    ocr_text = self.ocr_local(x1, y1, x2, y2, screen_shot=screen_shot, size=size)
             else:
                 ocr_text = self.ocr_local(x1, y1, x2, y2, screen_shot=screen_shot, size=size)
         elif ocr_mode == "网络":
@@ -141,6 +206,7 @@ class ToolsMixin(BaseMixin):
     def ocr_local(self, x1, y1, x2, y2, screen_shot=None, size=1.0):
         if screen_shot is None:
             screen_shot = self.getscreen()
+
         try:
             if screen_shot.shape[0] > screen_shot.shape[1]:
                 if anticlockwise_rotation_times >= 1:
@@ -187,6 +253,7 @@ class ToolsMixin(BaseMixin):
         part = screen_shot[y1:y2, x1:x2]  # 对角线点坐标
         part = cv2.resize(part, None, fx=size, fy=size, interpolation=cv2.INTER_LINEAR)  # 利用resize调整图片大小
         partbin = cv2.imencode('.jpg', part)[1]  # 转成base64编码（误）
+
         try:
             files = {'file': ('tmp.png', partbin, 'image/png')}
             result = requests.post(url="http://127.0.0.1:5000/ocr/baidu_ocr/", files=files)
@@ -413,3 +480,4 @@ class ToolsMixin(BaseMixin):
                 break
         t = t[left:right + 1]
         return t.sum() / len(t)
+

@@ -67,8 +67,8 @@ def RunningInput():
                 print("* 全部任务结束后，将自动退出。")
                 JoinExit()
     else:
-        print("* 实时控制已经开启，可以再config.ini - running_input中进行设置。")
-        print("* Tips：如果出现了子进程长时间未响应的清空，请输入join或在配置中关闭running_input。")
+        print("* 实时控制已经开启，可以在config.ini - running_input中进行设置。")
+        print("* Tips：如果出现了子进程长时间未响应的情况，请输入join或在配置中关闭running_input。")
         print("* 输入help，查看实时控制帮助。")
 
 
@@ -256,7 +256,8 @@ def ShowServerChan():
 
 
 def ShowAutoConsole():
-    print("* ADB文件位置 adb_dir：", adb_dir)
+    print("* ADB文件路径 adb_dir：", os.path.abspath(adb_dir))
+    print("* 自动添加至环境变量 add_adb_to_path：", "已开启" if add_adb_to_path else "未开启")
     if emulator_console != "":
         print("* 模拟器自动控制已配置！")
         print("  - 模拟器选择 selected_emulator：", selected_emulator)
@@ -298,7 +299,9 @@ def ShowPCRPerformance():
         print("* 图像匹配超时报错已屏蔽")
     print("* Shift+P脚本暂停 enable_pause：", "已开启" if enable_pause else "未开启")
     print("* 最大重启重试次数 max_reboot：", max_reboot)
-    print("* 运行时实时控制 running_input：", "已开启" if enable_pause else "未开启")
+    print("* 运行时实时控制 running_input：", "已开启" if running_input else "未开启")
+    print("* 自动跳过验证码 captcha_skip：", "已开启" if captcha_skip else "未开启")
+    print("* 出现验证码后等待时间 captcha_wait_time：", captcha_wait_time)
 
 
 def ShowDebugInfo():
@@ -363,10 +366,13 @@ if __name__ == "__main__":
             ContinueSchedule()
     else:
         print("------------- 用户脚本控制台 --------------")
+        print("Ver 2.0.20201024")
         print("help 查看帮助                   exit 退出")
         print("info 查看配置信息               guide 教程")
         print("By TheAutumnOfRice")
         print("----------------------------------------")
+        print("* Tip：如果要使用任何OCR（包括本地和网络），请手动启动app.py！")
+        print("* Tip：如果某Schedule莫名无法运行，可能是存在未解决的错误，请参考introduce中错误解决相关部分！")
         if last_schedule != "":
             print("当前绑定计划：", last_schedule)
         print("新的脚本控制方法更新！输入help查看帮助。")

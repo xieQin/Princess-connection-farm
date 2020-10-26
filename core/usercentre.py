@@ -177,6 +177,8 @@ def check_task_dict(d: dict, is_raise=False) -> bool:
             for k in i:
                 if k == "type":
                     continue
+                if k == "__disable__":
+                    continue
                 assert k in v_k, f"任务 {i['type']} 含有未知的参数 {k}！"
                 ind = v_k.index(k)
                 v_p[ind].check(i[k])
@@ -272,7 +274,7 @@ def list_all_groups(verbose=1) -> List[str]:
     for i in ld:
         if not os.path.isdir(i) and i.endswith(".txt"):
             try:
-                users = AutomatorRecorder.getgroup(i.rstrip(".txt"))
+                users = AutomatorRecorder.getgroup(i[:-4])
                 check_users_exists(users)
                 if verbose:
                     print("组配置", i, "加载成功！")
@@ -319,7 +321,7 @@ def list_all_batches(verbose=1) -> List[str]:
         if not os.path.isdir(i) and i.endswith(".txt"):
             nam = ""
             try:
-                nam = i.rstrip(".txt")
+                nam = i[:-4]
                 batch = AutomatorRecorder.getbatch(nam)
                 check_valid_batch(batch)
                 batches += [nam]
@@ -376,7 +378,7 @@ def list_all_schedules(verbose=1) -> List[str]:
         if not os.path.isdir(i) and i.endswith(".txt"):
             nam = ""
             try:
-                nam = i.rstrip(".txt")
+                nam = i[:-4]
                 schedule = AutomatorRecorder.getschedule(nam)
                 check_valid_schedule(schedule)
                 schedules += [nam]
@@ -629,6 +631,9 @@ class AutomatorRecorder:
             self._save(target_name, default)
 
         now = self._load(target_name)
+        if now is None:
+            self._save(target_name, default)
+            return default
         flag = False
         # 检查缺失值，用默认值填充
         for k, v in default.items():

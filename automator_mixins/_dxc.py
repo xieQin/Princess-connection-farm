@@ -44,7 +44,8 @@ class DXCMixin(DXCBaseMixin, ToolsMixin):
                 if self.is_exists('img/yunhai.bmp'):
                     break
                 # 防止一进去就是塔币教程
-                self.lock_img('img/dxc/chetui.bmp', side_check=self.dxc_kkr, retry=3, at=(779, 421, 833, 440))
+                self.lock_img('img/dxc/chetui.bmp', side_check=self.dxc_kkr, retry=10, at=(779, 421, 833, 440),
+                              threshold=0.97)
                 break
                 # self.dxc_kkr()
         tmp_cout = 0
@@ -56,6 +57,10 @@ class DXCMixin(DXCBaseMixin, ToolsMixin):
                     dixiacheng_floor = int(dixiacheng_floor.split('/')[0])
                     dixiacheng_floor_times = self.ocr_center(668, 421, 697, 445, size=1.5)
                     # print(dixiacheng_floor_times)
+
+                    # 本地OCR会把0识别成字母O。。。
+                    dixiacheng_floor_times = dixiacheng_floor_times.replace('O', '0')
+
                     dixiacheng_floor_times = int(dixiacheng_floor_times.split('/')[0])
                     tmp_cout = tmp_cout + 1
                     dixiacheng_times = dixiacheng_floor_times
@@ -90,6 +95,10 @@ class DXCMixin(DXCBaseMixin, ToolsMixin):
                 self.lock_img('img/yunhai.bmp', side_check=self.juqing_kkr, retry=3)
                 if self.is_exists('img/yunhai.bmp'):
                     dixiacheng_times = self.ocr_center(879, 430, 917, 448, size=2.0)
+
+                    # 本地OCR会把0识别成字母O。。。
+                    dixiacheng_times = dixiacheng_times.replace('O', '0')
+
                     # {'log_id': ***, 'words_result_num': 1, 'words_result': [{'words': '0/1'}]}
                     # print(dixiacheng_times)
                     dixiacheng_times = int(dixiacheng_times.split('/')[0])
@@ -162,24 +171,28 @@ class DXCMixin(DXCBaseMixin, ToolsMixin):
                                   side_check=self.juqing_kkr)
                     # 锁定挑战和第一层
                     break
-            while True:
-                time.sleep(self.change_time)
-                self.click_btn(DXC_ELEMENT["zhiyuan_white"], until_appear=DXC_ELEMENT["zhiyuan_blue"], retry=3
-                               , wait_self_before=True)
+            time.sleep(self.change_time)
+            if self.click_btn(DXC_ELEMENT["zhiyuan_white"], until_appear=DXC_ELEMENT["zhiyuan_blue"],
+                              retry=3, wait_self_before=True):
+                pass
+            # if self.lock_no_img(DXC_ELEMENT["zhiyuan_blue"], retry=1):
+            else:
+                pcr_log(self.account).write_log(level='info', message="%s无支援人物!" % self.account)
+                self.dxc_switch = 1
                 break
 
             if self.is_exists('img/dengjixianzhi.jpg', at=(45, 144, 163, 252)):
                 # 如果等级不足，就支援的第二个人
                 self.click_btn(DXC_ELEMENT["zhiyuan_dianren"][assist_num + 1],
                                until_appear=DXC_ELEMENT["zhiyuan_gouxuan"]
-                               , retry=5, elsedelay=0.1)
+                               , retry=6)
                 # self.click(100, 173, post_delay=1)  # 支援的第一个人
             else:
                 time.sleep(self.change_time)
                 self.click_btn(DXC_ELEMENT["zhiyuan_dianren"][assist_num], until_appear=DXC_ELEMENT["zhiyuan_gouxuan"]
-                               , retry=5, elsedelay=0.1)
+                               , retry=6)
             time.sleep(self.change_time)
-            if self.is_exists('img/notzhandoukaishi.bmp', threshold=0.97):
+            if self.is_exists('img/notzhandoukaishi.bmp', at=(758, 423, 915, 473), is_black=True, black_threshold=1500):
                 # 逻辑顺序改变
                 # 当无法选支援一二位时，将会退出地下城
                 pcr_log(self.account).write_log(level='info', message="%s无法出击!" % self.account)
@@ -187,8 +200,8 @@ class DXCMixin(DXCBaseMixin, ToolsMixin):
             else:
                 # 全部
                 self.click_btn(DXC_ELEMENT["quanbu_white"], until_appear=DXC_ELEMENT["quanbu_blue"], elsedelay=0.1)
-                self.click_btn(DXC_ELEMENT["zhiyuan_dianren"][1], until_appear=DXC_ELEMENT["zhiyuan_gouxuan"],
-                               elsedelay=0.1, retry=3)  # 第一个人
+                for i in range(1, 9):
+                    self.click(DXC_ELEMENT["zhiyuan_dianren"][i])
                 self.click_btn(DXC_ELEMENT["zhandoukaishi"], until_disappear=DXC_ELEMENT["zhandoukaishi"]
                                , elsedelay=0.1)  # 战斗开始
             while True:
@@ -200,21 +213,22 @@ class DXCMixin(DXCBaseMixin, ToolsMixin):
                 break
 
             if skip:  # 直接放弃战斗
+                self.lock_img(FIGHT_BTN["caidan"], elseclick=[(1, 1)], retry=12)
                 self.click_btn(FIGHT_BTN["caidan"], wait_self_before=True, until_appear=FIGHT_BTN["fangqi_1"],
                                elsedelay=0.1)
                 self.click_btn(FIGHT_BTN["fangqi_1"], until_appear=FIGHT_BTN["fangqi_2"])
                 self.click_btn(FIGHT_BTN["fangqi_2"], until_disappear=FIGHT_BTN["fangqi_2"])
                 time.sleep(3 + self.change_time)
                 # 这里防一波打得太快导致来不及放弃
-                if self.is_exists('img/shanghaibaogao.jpg') and self.is_exists('img/xiayibu.jpg'):
+                if self.is_exists('img/shanghaibaogao.jpg', at=(663, 6, 958, 120)) and \
+                        self.is_exists('img/xiayibu.jpg', at=(457, 421, 955, 535)):
                     self.lock_no_img('img/xiayibu.jpg', elseclick=[(870, 503)])
-                    break
-                elif self.is_exists('img/shanghaibaogao.jpg') and self.is_exists('img/qianwangdixiacheng.jpg'):
+                elif self.is_exists('img/shanghaibaogao.jpg', at=(663, 6, 958, 120)) and \
+                        self.is_exists('img/qianwangdixiacheng.jpg', at=(457, 421, 955, 535)):
                     self.lock_no_img('img/qianwangdixiacheng.jpg', elseclick=[(870, 503)])
-                    break
             else:
                 # 防止奇奇怪怪的飞到主菜单
-                if self.lock_img('img/caidan.jpg', elseclick=[(1, 1)], retry=3):
+                if self.lock_img('img/caidan.jpg', elseclick=[(1, 1)], retry=6):
                     self.lock_img('img/auto_1.jpg', elseclick=[(914, 425)], elsedelay=0.2, retry=3)
                     self.lock_img('img/kuaijin_3.bmp', elseclick=[(913, 494)], elsedelay=0.2, retry=3)
             while skip is False:  # 结束战斗返回
@@ -233,17 +247,20 @@ class DXCMixin(DXCBaseMixin, ToolsMixin):
 
             self.click(1, 1)  # 跳过结算
             while True:  # 撤退地下城
+                if self.dxc_switch == 1:
+                    break
                 time.sleep(self.change_time)
                 self.click(1, 1, pre_delay=self.change_time)  # 取消显示结算动画
                 if self.is_exists('img/dxc/chetui.bmp', at=(779, 421, 833, 440)):
-                    self.lock_img('img/ui/ok_btn_1.bmp', ifclick=[(588, 371)], elseclick=[(808, 435)], retry=20)
+                    self.lock_img('img/ui/ok_btn_1.bmp', elseclick=[(808, 435)], retry=20)
+                    self.click_btn(DXC_ELEMENT["ok_btn_1"], until_disappear=DXC_ELEMENT["ok_btn_1"])
                     break
-            # 执行完后再检测一轮后跳出大循环
-            self.lock_no_img('img/dxc/chetui.bmp', elseclick=[(808, 435), (588, 371)], retry=20,
-                             at=(779, 421, 833, 440))
-            self.lock_img('img/yunhai.bmp')
+            # 执行完后再检测一轮后跳出大循环 self.lock_no_img('img/dxc/chetui.bmp', elseclick=[(808, 435), (588, 371)], retry=20,
+            # at=(779, 421, 833, 440)) self.lock_img('img/yunhai.bmp')
             break
-        while True:  # 首页锁定
+
+        while True:
+            # 首页锁定
             if self.is_exists('img/liwu.bmp', at=(891, 413, 930, 452)):
                 break
             self.click(131, 533, post_delay=self.change_time)  # 保证回到首页
@@ -300,12 +317,12 @@ class DXCMixin(DXCBaseMixin, ToolsMixin):
             self.lock_img('img/liwu.bmp', elseclick=[(131, 533)], at=(891, 413, 930, 452))
             return
         # 防止教程
-        self.lock_img('img/chetui.jpg', side_check=self.juqing_kkr, at=(738, 420, 872, 442), retry=3)
+        self.lock_img('img/chetui.jpg', side_check=self.juqing_kkr, at=(738, 420, 872, 442), retry=3, threshold=0.97)
 
         while True:
             # 防止塔币教程
             self.lock_img('img/chetui.jpg', elseclick=[(1, 1)], side_check=self.dxc_kkr, at=(738, 420, 872, 442),
-                          retry=10)
+                          retry=10, threshold=0.97)
             # 锁定挑战和第一层
             time.sleep(1.5)
             self.lock_img('img/tiaozhan.bmp', elseclick=[(667, 360)], elsedelay=1, ifclick=[(833, 456)],
@@ -389,7 +406,7 @@ class DXCMixin(DXCBaseMixin, ToolsMixin):
                 if UIMatcher.img_where(screen_shot_, 'img/chetui.jpg'):  # 避免某些农场号刚买回来已经进了地下城
                     break
                 if UIMatcher.img_where(screen_shot_, 'img/yunhai.bmp'):
-                    self.click(250, 250)  # 云海
+                    self.click(130, 259)  # 云海
                     time.sleep(1)
                     while True:
                         screen_shot_ = self.getscreen()
@@ -465,7 +482,8 @@ class DXCMixin(DXCBaseMixin, ToolsMixin):
         # 完成战斗后
         self.lock_home()
 
-    def shuatuDD(self, dxc_id: int, mode: int, stop_criteria: int = 0, after_stop: int = 0, teams=None):  # 刷地下城
+    def shuatuDD(self, dxc_id: int, mode: int, stop_criteria: int = 0, after_stop: int = 0, teams=None,
+                 safety_stop=1):  # 刷地下城
         """
         2020-07-29 Add By TheAutumnOfRice
 
@@ -494,6 +512,9 @@ class DXCMixin(DXCBaseMixin, ToolsMixin):
             若为空字符串，则表示不进行队伍更改，沿用上次队伍
             若为"zhanli"，则按照战力排序，选择前五战力为当前队伍
             若为“a-b",其中a为1~5的整数，b为1~3的整数，则选择编组a队伍b。
+        :param safety_stop: 安全措施（防止过早退出）
+            设置为0时，如果在小关触发停止条件，则不管
+            设置为1时，如果在小关触发停止条件，则跳过本脚本，不撤退，防止大号误撤退（默认）
         """
         # 2020-08-01 Fix By TheAutumnOfRice 对快速截屏的兼容性
         from core.constant import DXC_COORD
@@ -547,8 +568,13 @@ class DXCMixin(DXCBaseMixin, ToolsMixin):
             set_duiwu = 0
             if state == 0:
                 # 伤亡惨重
-                self.log.write_log("info", "在地下城伤亡惨重！")
-                stop_fun()
+                if safety_stop:
+                    self.log.write_log("warning", "安全保护启动，可能在小关中阵亡，跳过地下城。")
+                    self.save_last_screen("安全保护Debug.bmp")
+                    self.lock_home()
+                else:
+                    self.log.write_log("warning", "在地下城伤亡惨重！")
+                    stop_fun()
                 return
             elif state == -2:
                 # 没有点中图，试试下一个

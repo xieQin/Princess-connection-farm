@@ -1,6 +1,6 @@
  <img src="webclient/src/assets/logo.jpg" width = "80" height = "80" alt="LOGO" align=center />
 
- # Princess connection 公主连结农场脚本v2.0
+ # Princess connection 公主连结农场脚本v2.0.20201024
 
 ![](https://img.shields.io/badge/license-GPL--3.0-blue)![](https://img.shields.io/badge/opencv-2.0-blue)![](https://img.shields.io/badge/UIAutomator-2-blue)
 
@@ -112,6 +112,8 @@ Server酱食用方法：（http://sc.ftqq.com/3.version）
 - [x] 模拟器自启动控制
 - [x] 简化Schedule操作模式
 - [ ] WebGUI界面
+- [ ] 提高刷图效率
+- [ ] 刷活动本
 
 ## 免责声明
 
@@ -120,6 +122,56 @@ Server酱食用方法：（http://sc.ftqq.com/3.version）
 本项目仅供交流和学习使用，请勿用此从事 违法/商业盈利等，开发者团队拥有本项目的最终解释权
 
 ## 更新历史
+
+2020/10/24 By:CyiceK
+
+- 修复异步暂停线程溢出
+- 修复timeout与暂停冲突问题
+- OCR地下城在无支援任务时，会自动退出不撤退
+
+2020/10/18 By:TheAutumnOfRice
+
+- 通关地下城提示信息修复
+- 8-15参数缺失，进行了补充
+- 部分体力相关BUG导致无法刷图的修复
+
+2020/10/10 By:TheAutumnOfRice
+
+- 紧急修复v2.0.20201009验证码配置混乱的Bug
+- 增加了等待验证码输入的时间，可以通过`captcha_wait_time`配置控制
+
+2020/10/9 By:TheAutumnOfRice
+
+- 更新15图
+- 登录强退时长增加180s->300s
+- 修复文件损坏读取Nonetype时的报错
+- 修复登陆时快速截图异常导致狂点右上角的报错
+- 快速截图连接失败时，如果配置了force_fastscreen_cut以及模拟器自动控制，将自动重启模拟器
+- 修复验证码无法跳过的Bug
+
+2020/10/1 By:CyiceK
+
+- 对验证码的问题进行处理，通过Sever酱进行通知并且跳过该账号，写入异常记录
+
+2020/9/29 By:TheAutumnOfRice
+
+- 用户协议检测时间增加 10s -> 20s
+- 修复推图大概率卡限定商店的BUG
+
+2020/9/28 By:TheAutumnOfRice
+
+- 新增跳过用户协议
+
+2020/9/24 By:TheAutumnOfRice
+
+- 通过将自带adb添加到环境变量，也许修复了自启动的BUG
+- 增加timeout，全面防止彻底卡死
+- 进一步提升u2调用稳定性
+
+2020/9/15 By:TheAutumnOfRice
+
+- 更新14图
+- 修复部分BUG，解决推图遇到限定商店的问题（大概
 
 2020/9/7By:CyiceK
 

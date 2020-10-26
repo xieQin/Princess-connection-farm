@@ -199,7 +199,11 @@ def show_task(TaskName):
     T = VALID_TASK.T
     obj = AutomatorRecorder.gettask(TaskName)
     for i in obj["tasks"]:
-        print(T[i["type"]]["title"])
+        print(T[i["type"]]["title"], end=" ")
+        if "__disable__" in i and i["__disable__"]:
+            print("(禁用)")
+        else:
+            print()
 
 
 def create_task(TaskName):
@@ -341,6 +345,9 @@ def create_schedule(ScheduleName):
 
 def _show_schedule(obj):
     for ind, i in enumerate(obj["schedules"]):
+        if "__disable__" in i and i["__disable__"]:
+            print("ID", ind, "NAME", i["name"], "已禁用")
+            continue
         if i["type"] in ["asap", "wait"]:
             if i["type"] == "asap":
                 print("ID", ind, "NAME", i["name"], "：** 立即执行 **")
