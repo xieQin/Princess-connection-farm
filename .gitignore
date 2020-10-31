@@ -26,3 +26,5 @@ log
 /test/
 /developutils/
 /users_bak/
+
+config.local.ini

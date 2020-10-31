@@ -12,11 +12,11 @@ queue = queue.Queue(baidu_QPS)
 # 这一行代码用于关闭tensorflow的gpu模式（如果使用，内存占用翻几倍）
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-if ocr_mode != "网络" and len(ocr_mode) != 0:
-    import muggle_ocr
+# if ocr_mode != "网络" and len(ocr_mode) != 0:
+    # import muggle_ocr
 
     # 初始化；model_type 包含了 ModelType.OCR/ModelType.Captcha 两种
-    sdk = muggle_ocr.SDK(model_type=muggle_ocr.ModelType.OCR)
+    # sdk = muggle_ocr.SDK(model_type=muggle_ocr.ModelType.OCR)
 
 ocr_api = Blueprint('ocr', __name__)
 
@@ -39,7 +39,7 @@ def baidu_ocr():
     img = request.files.get('file')
     queue.put((img.read()))
     config = {
-        'appId': 'PCR',
+        'appId': '20158852',
         'apiKey': baidu_apiKey,
         'secretKey': baidu_secretKey
     }

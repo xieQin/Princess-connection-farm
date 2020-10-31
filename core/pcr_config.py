@@ -4,7 +4,7 @@ import json
 from typing import Optional
 
 cfg = configparser.ConfigParser()
-cfg.read('config.ini', encoding="utf-8")
+cfg.read('config.local.ini', encoding="utf-8")
 
 # cfg.sections() 全部头
 # cfg.get('debug', 'trace_exception_for_debug')
